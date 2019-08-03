@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -12,6 +13,15 @@ import (
 // PersistServer allows the user to save or retrieve requests
 type PersistServer struct {
 	Saver persistrequests.SaveRequest
+}
+
+// FileWriter implements is an abstraction of ioutil.WriterFile
+type FileWriter struct {
+}
+
+// WriteFile implements the Writer interface that's been created so that ioutil.WriteFile can be mocked
+func (w FileWriter) WriteFile(filename string, data []byte, perm os.FileMode) error {
+	return ioutil.WriteFile(filename, data, perm)
 }
 
 // SaveRequest takes the body of the request and saves it as a json file
@@ -31,7 +41,9 @@ func (p PersistServer) SaveRequest() http.HandlerFunc {
 
 		filename, _ := request["requestName"]
 
-		p.Saver.Save(filename.(string), request)
+		wr := FileWriter{}
+
+		p.Saver.Save(filename.(string), request, wr)
 
 		json.NewEncoder(w).Encode(request)
 	}
