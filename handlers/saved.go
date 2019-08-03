@@ -7,10 +7,16 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/willdot/NotARealServer/persistrequests"
 )
 
+// PersistServer allows the user to save or retrieve requests
+type PersistServer struct {
+	Saver persistrequests.SaveRequest
+}
+
 // SaveRequest takes the body of the request and saves it as a json file
-func SaveRequest() http.HandlerFunc {
+func (p PersistServer) SaveRequest() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		decoder := json.NewDecoder(r.Body)
@@ -24,21 +30,23 @@ func SaveRequest() http.HandlerFunc {
 			return
 		}
 
-		filename, found := request["requestName"]
+		/*filename, found := request["requestName"]
 
 		if !found {
 			http.Error(w, "no requestName property found in body", http.StatusBadRequest)
 			return
-		}
+		}*/
 
-		save(filename.(string)+".json", request)
+		//save(filename.(string)+".json", request)
+
+		p.Saver.Save(request)
 
 		json.NewEncoder(w).Encode(request)
 	}
 }
 
 // RetreiveRequest takes the first parameter of the url and tried to return a saved request with that name
-func RetreiveRequest() http.HandlerFunc {
+func (p PersistServer) RetreiveRequest() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		params := mux.Vars(r)
