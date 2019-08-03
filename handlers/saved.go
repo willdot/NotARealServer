@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -30,16 +29,9 @@ func (p PersistServer) SaveRequest() http.HandlerFunc {
 			return
 		}
 
-		/*filename, found := request["requestName"]
+		filename, _ := request["requestName"]
 
-		if !found {
-			http.Error(w, "no requestName property found in body", http.StatusBadRequest)
-			return
-		}*/
-
-		//save(filename.(string)+".json", request)
-
-		p.Saver.Save(request)
+		p.Saver.Save(filename.(string), request)
 
 		json.NewEncoder(w).Encode(request)
 	}
@@ -65,12 +57,6 @@ func (p PersistServer) RetreiveRequest() http.HandlerFunc {
 
 		json.NewEncoder(w).Encode(decodedFile)
 	}
-}
-
-func save(filename string, data map[string]interface{}) {
-
-	file, _ := json.MarshalIndent(data, "", " ")
-	_ = ioutil.WriteFile(filename, file, 0644)
 }
 
 func load(filename string) map[string]interface{} {
