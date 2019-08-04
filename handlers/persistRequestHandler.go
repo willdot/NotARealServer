@@ -18,7 +18,7 @@ type PersistServer struct {
 // NewPersistServer creates a new PersistServer and adds in dependencies
 func NewPersistServer() PersistServer {
 	return PersistServer{
-		Saver:      persistrequests.JSONSaver{},
+		Saver:      persistrequests.JSONPersist{},
 		FileWriter: persistrequests.FileWriter{},
 	}
 }
@@ -68,6 +68,7 @@ func (p PersistServer) RetreiveRequest() http.HandlerFunc {
 	}
 }
 
+// TODO move this into the persistrequests package
 func load(filename string) map[string]interface{} {
 
 	jsonFile, err := os.Open(filename)

@@ -25,12 +25,12 @@ type SaveRequest interface {
 	Save(filename string, requestData map[string]interface{}, w Writer) error
 }
 
-// JSONSaver will allow a request to be saved to a JSON file
-type JSONSaver struct {
+// JSONPersist will allow a request to be saved and loaded to/from a JSON file
+type JSONPersist struct {
 }
 
 // Save will save a request to a json file
-func (j JSONSaver) Save(filename string, requestData map[string]interface{}, w Writer) error {
+func (j JSONPersist) Save(filename string, requestData map[string]interface{}, w Writer) error {
 
 	file, err := json.MarshalIndent(requestData, "", " ")
 
