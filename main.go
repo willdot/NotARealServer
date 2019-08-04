@@ -5,18 +5,13 @@ import (
 	"net/http"
 
 	"github.com/willdot/NotARealServer/handlers"
-	"github.com/willdot/NotARealServer/persistrequests"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
 
-	JSONSaver := persistrequests.JSONSaver{}
-
-	server := handlers.PersistServer{
-		Saver: JSONSaver,
-	}
+	server := handlers.NewPersistServer()
 
 	router := mux.NewRouter()
 
