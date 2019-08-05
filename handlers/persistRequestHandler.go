@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/willdot/NotARealServer/persistrequests"
 )
+
+var errNoRequestNameFound = errors.New("no request property found")
 
 // PersistServer allows the user to save or retrieve requests
 type PersistServer struct {
@@ -39,7 +42,12 @@ func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		filename, _ := request["requestName"]
+		filename, found := request["requestName"]
+
+		if !found {
+			http.Error(w, errNoRequestNameFound.Error(), http.StatusBadRequest)
+			return
+		}
 
 		p.LoadSaver.Save(filename.(string), request, p.FileWriter)
 
