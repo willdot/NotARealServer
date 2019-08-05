@@ -2,7 +2,6 @@ package persistrequests
 
 import (
 	"encoding/json"
-	"io/ioutil"
 )
 
 // JSONPersist will allow a request to be saved and loaded to/from a JSON file
@@ -26,7 +25,7 @@ func (j JSONPersist) Save(filename string, requestData map[string]interface{}, w
 // Load will load a json from a file
 func (j JSONPersist) Load(filename string, r Reader) (map[string]interface{}, error) {
 
-	byteValue, err := ioutil.ReadFile(filename)
+	byteValue, err := r.ReadFile(filename)
 
 	if err != nil {
 		return nil, err
