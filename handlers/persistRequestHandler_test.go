@@ -4,9 +4,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/willdot/NotARealServer/persistrequests"
 )
 
@@ -27,6 +29,7 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 
 var testThing = PersistServer{
 	FileWriter: fakeFileReaderWriter{},
+	FileReader: fakeFileReaderWriter{},
 	LoadSaver:  persistrequests.JSONPersist{},
 }
 
@@ -35,23 +38,53 @@ type fake struct {
 	something   string
 }
 
-func TestSaveRequestHandler(t *testing.T) {
+func TestNewPersistServer(t *testing.T) {
 
-	makeRequest := func(t *testing.T, body string, rr *httptest.ResponseRecorder) {
+	got := NewPersistServer()
 
-		t.Helper()
-
-		req, err := http.NewRequest(http.MethodPost, "/save", strings.NewReader(body))
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-		handler := http.HandlerFunc(testThing.SaveRequestHandler())
-
-		handler.ServeHTTP(rr, req)
+	want := PersistServer{
+		LoadSaver:  persistrequests.JSONPersist{},
+		FileWriter: persistrequests.FileWriter{},
+		FileReader: persistrequests.FileReader{},
 	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Got %v, wanted %v", got, want)
+	}
+}
+
+var makeRequest = func(t *testing.T, url, body string, handler http.Handler, rr *httptest.ResponseRecorder) {
+
+	t.Helper()
+
+	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(body))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	handler.ServeHTTP(rr, req)
+}
+
+func TestRetreiveRequestHandler(t *testing.T) {
+
+	handler := mux.NewRouter()
+	handler.HandleFunc("/{request}", testThing.RetreiveRequestHandler())
+
+	t.Run("Param ok. Request Exists. Request returned", func(t *testing.T) {
+		body := ""
+
+		rr := httptest.NewRecorder()
+
+		makeRequest(t, "/test", body, handler, rr)
+
+	})
+}
+
+func TestSaveRequestHandler(t *testing.T) {
+	handler := testThing.SaveRequestHandler()
 
 	t.Run("Body ok. Returns 200", func(t *testing.T) {
 		body := `{
@@ -61,7 +94,7 @@ func TestSaveRequestHandler(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		makeRequest(t, body, rr)
+		makeRequest(t, "save", body, handler, rr)
 
 		got := strings.TrimSuffix(rr.Body.String(), "\n")
 
@@ -80,7 +113,7 @@ func TestSaveRequestHandler(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		makeRequest(t, body, rr)
+		makeRequest(t, "save", body, handler, rr)
 
 		if status := rr.Code; status != http.StatusBadRequest {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
@@ -94,7 +127,7 @@ func TestSaveRequestHandler(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		makeRequest(t, body, rr)
+		makeRequest(t, "save", body, handler, rr)
 
 		if status := rr.Code; status != http.StatusBadRequest {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
