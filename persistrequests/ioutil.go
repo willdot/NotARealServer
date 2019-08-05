@@ -1,12 +1,11 @@
 package persistrequests
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 )
 
-// FileWriter implements is an abstraction of ioutil.WriterFile
+// FileWriter implements an abstraction of ioutil.WriterFile
 type FileWriter struct {
 }
 
@@ -25,21 +24,21 @@ type SaveRequest interface {
 	Save(filename string, requestData map[string]interface{}, w Writer) error
 }
 
-// JSONPersist will allow a request to be saved and loaded to/from a JSON file
-type JSONPersist struct {
+//FileReader implements an abstraction of the ioutil.ReadFile
+type FileReader struct {
 }
 
-// Save will save a request to a json file
-func (j JSONPersist) Save(filename string, requestData map[string]interface{}, w Writer) error {
+// ReadFile implements the Reader interface that has been created so that ioutil.ReadFile can be mocked or faked
+func (f FileReader) ReadFile(filename string) ([]byte, error) {
+	return ioutil.ReadFile(filename)
+}
 
-	file, err := json.MarshalIndent(requestData, "", " ")
+// Reader is an interface to use over the ioutil.ReadFile() function so that it can be mocked or faked
+type Reader interface {
+	ReadFile(filename string) ([]byte, error)
+}
 
-	if err != nil {
-		return err
-	}
-
-	//err = ioutil.WriteFile(filename+".json", file, 0644)
-	err = w.WriteFile(filename+".json", file, 0644)
-
-	return err
+// LoadRequest is an interface to load a request
+type LoadRequest interface {
+	Load(filename string, r Reader) (map[string]interface{}, error)
 }

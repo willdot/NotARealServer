@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/willdot/NotARealServer/persistrequests"
@@ -11,20 +10,22 @@ import (
 
 // PersistServer allows the user to save or retrieve requests
 type PersistServer struct {
-	Saver      persistrequests.SaveRequest
+	LoadSaver  persistrequests.JSONPersist
 	FileWriter persistrequests.Writer
+	FileReader persistrequests.Reader
 }
 
 // NewPersistServer creates a new PersistServer and adds in dependencies
 func NewPersistServer() PersistServer {
 	return PersistServer{
-		Saver:      persistrequests.JSONPersist{},
 		FileWriter: persistrequests.FileWriter{},
+		FileReader: persistrequests.FileReader{},
+		LoadSaver:  persistrequests.JSONPersist{},
 	}
 }
 
-// SaveRequest takes the body of the request and saves it as a json file
-func (p PersistServer) SaveRequest() http.HandlerFunc {
+// SaveRequestHandler takes the body of the request and saves it as a json file
+func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		decoder := json.NewDecoder(r.Body)
@@ -40,14 +41,14 @@ func (p PersistServer) SaveRequest() http.HandlerFunc {
 
 		filename, _ := request["requestName"]
 
-		p.Saver.Save(filename.(string), request, persistrequests.FileWriter{})
+		p.LoadSaver.Save(filename.(string), request, p.FileWriter)
 
 		json.NewEncoder(w).Encode(request)
 	}
 }
 
-// RetreiveRequest takes the first parameter of the url and tried to return a saved request with that name
-func (p PersistServer) RetreiveRequest() http.HandlerFunc {
+// RetreiveRequestHandler takes the first parameter of the url and tried to return a saved request with that name
+func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		params := mux.Vars(r)
@@ -59,29 +60,18 @@ func (p PersistServer) RetreiveRequest() http.HandlerFunc {
 			return
 		}
 
-		decodedFile := load(request + ".json")
+		decodedFile, err := p.LoadSaver.Load(request+".json", p.FileReader)
+
+		if err != nil {
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
 
 		// remove the filename
 		delete(decodedFile, "requestName")
 
 		json.NewEncoder(w).Encode(decodedFile)
 	}
-}
-
-// TODO move this into the persistrequests package
-func load(filename string) map[string]interface{} {
-
-	jsonFile, err := os.Open(filename)
-	defer jsonFile.Close()
-
-	if err != nil {
-		panic(err)
-	}
-
-	decoder := json.NewDecoder(jsonFile)
-
-	var result map[string]interface{}
-	decoder.Decode(&result)
-
-	return result
 }
