@@ -30,6 +30,10 @@ func TestBasic(t *testing.T) {
 
 		makeRequest(t, "", body, handler, rr)
 
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
+
 		got := strings.TrimSuffix(rr.Body.String(), "\n")
 
 		want := "You hit basic"
@@ -46,6 +50,10 @@ func TestBasic(t *testing.T) {
 		body := `{"Basic":"Request"}`
 
 		makeRequest(t, "", body, handler, rr)
+
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
 
 		got := strings.TrimSuffix(rr.Body.String(), "\n")
 
