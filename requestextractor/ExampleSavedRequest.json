@@ -1,26 +1,18 @@
 {
-    "requestName" : "test",    
-    "requestRoute" : "CreatePerson",
-    "requests": {
-        "request1" : {
-            "type" : "POST",
-            "input" : {
-                "name" : "Will",
-                "job" : "Software Engineer"
-            },
-            "output" : {
-                "id" : "1111"
+    "RequestRoute": "CreatePerson",
+    "Requests": [
+        {
+            "MethodType": "POST",
+            "Result": {
+                "Id": "1111"
             }
         },
-        "request2" : {
-            "type" : "GET",
-            "input" : {
-                "id" : "1111"
-            },
-            "output" : {
-                "name" : "Will",
-                "job" : "Software Engineer"
+        {
+            "MethodType": "GET",
+            "Result": {
+                "Name": "will",
+                "Job": "Software Engineer"
             }
         }
-    }
+    ]
 }

@@ -43,14 +43,17 @@ func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		filename, found := request["requestRoute"]
+		requestRoute, found := request["requestRoute"]
+		requestType, found := request["methodType"]
+
+		filename := fmt.Sprintf("%v-%v", requestType, requestRoute)
 
 		if !found {
 			http.Error(w, errNoRequestNameFound.Error(), http.StatusBadRequest)
 			return
 		}
 
-		p.LoadSaver.Save(filename.(string), request, p.FileWriter)
+		p.LoadSaver.Save(filename, request, p.FileWriter)
 
 		json.NewEncoder(w).Encode(request)
 	}
@@ -63,9 +66,11 @@ func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 		params := mux.Vars(r)
 
 		request, _ := params["requestRoute"]
-		//requestType := r.Method
+		requestType := r.Method
 
-		decodedFile, err := p.LoadSaver.Load(request+".json", p.FileReader)
+		filename := fmt.Sprintf("%v-%v.json", requestType, request)
+
+		decodedFile, err := p.LoadSaver.Load(filename, p.FileReader)
 
 		if err != nil {
 			if err != nil {
