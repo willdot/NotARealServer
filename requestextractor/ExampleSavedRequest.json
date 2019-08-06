@@ -3,6 +3,7 @@
     "requestRoute" : "CreatePerson",
     "requests": {
         "request1" : {
+            "type" : "POST",
             "input" : {
                 "name" : "Will",
                 "job" : "Software Engineer"
@@ -12,12 +13,13 @@
             }
         },
         "request2" : {
+            "type" : "GET",
             "input" : {
-                "name" : "James",
-                "job" : "Manager"
+                "id" : "1111"
             },
             "output" : {
-                "id" : "2222"
+                "name" : "Will",
+                "job" : "Software Engineer"
             }
         }
     }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -42,7 +43,7 @@ func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		filename, found := request["requestName"]
+		filename, found := request["requestRoute"]
 
 		if !found {
 			http.Error(w, errNoRequestNameFound.Error(), http.StatusBadRequest)
@@ -61,13 +62,14 @@ func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 
 		params := mux.Vars(r)
 
-		request, _ := params["request"]
+		request, _ := params["requestRoute"]
+		//requestType := r.Method
 
 		decodedFile, err := p.LoadSaver.Load(request+".json", p.FileReader)
 
 		if err != nil {
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", request), http.StatusBadRequest)
 				return
 			}
 		}

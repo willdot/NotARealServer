@@ -72,7 +72,7 @@ var makeRequest = func(t *testing.T, url, body string, handler http.Handler, rr 
 func TestRetreiveRequestHandler(t *testing.T) {
 
 	handler := mux.NewRouter()
-	handler.HandleFunc("/{request}", testThing.RetreiveRequestHandler())
+	handler.HandleFunc("/{requestRoute}", testThing.RetreiveRequestHandler())
 
 	t.Run("Param ok. Request Exists. Request returned. requestName removed from data", func(t *testing.T) {
 		body := ""
@@ -103,7 +103,7 @@ func TestRetreiveRequestHandler(t *testing.T) {
 		makeRequest(t, "/notexist", body, handler, rr)
 
 		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 		}
 	})
 }
@@ -113,7 +113,7 @@ func TestSaveRequestHandler(t *testing.T) {
 
 	t.Run("Body ok. Returns 200", func(t *testing.T) {
 		body := `{
-			"requestName": "Test",
+			"requestRoute": "Test",
 			"something" : "Hello"
 		   }`
 
@@ -127,7 +127,7 @@ func TestSaveRequestHandler(t *testing.T) {
 
 		got := strings.TrimSuffix(rr.Body.String(), "\n")
 
-		want := `{"requestName":"Test","something":"Hello"}`
+		want := `{"requestRoute":"Test","something":"Hello"}`
 
 		if got != want {
 			t.Errorf("handler returned unexpected body: got %v want %v",
@@ -137,7 +137,7 @@ func TestSaveRequestHandler(t *testing.T) {
 
 	t.Run("Body not ok. Returns 400", func(t *testing.T) {
 		body := `{
-			"requestName": "Test",
+			"requestRoute": "Test",
 			"something" : "Hello
 		   }`
 
