@@ -18,8 +18,8 @@ func main() {
 	router.HandleFunc("/basic", handlers.BasicWithBody())
 	router.HandleFunc("/basicwithbody", handlers.BasicWithBody())
 	router.HandleFunc("/save", server.SaveRequestHandler())
-	router.HandleFunc("/{requestRoute}", server.RetreiveRequestHandler())
-	router.HandleFunc("/{requestRoute}/{query}", server.RetreiveRequestHandler())
+	router.HandleFunc("/{RequestRoute}", server.RetreiveRequestHandler())
+	router.HandleFunc("/{RequestRoute}/{query}", server.RetreiveRequestHandler())
 
 	err := http.ListenAndServe(":8081", router)
 

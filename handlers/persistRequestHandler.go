@@ -10,7 +10,8 @@ import (
 	"github.com/willdot/NotARealServer/persistrequests"
 )
 
-var errNoRequestNameFound = errors.New("no request property found")
+var errNoRequestRouteFound = errors.New("no request route property found")
+var errNoRequestMethodFound = errors.New("no request method property found")
 
 // PersistServer allows the user to save or retrieve requests
 type PersistServer struct {
@@ -43,17 +44,20 @@ func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		requestRoute, found := request["requestRoute"]
-		requestType, found := request["methodType"]
+		requestRoute, routeFound := request["RequestRoute"]
+		requestMethod, methodFound := request["RequestMethod"]
 
-		filename := fmt.Sprintf("%v-%v", requestType, requestRoute)
-
-		if !found {
-			http.Error(w, errNoRequestNameFound.Error(), http.StatusBadRequest)
+		if !routeFound {
+			http.Error(w, errNoRequestRouteFound.Error(), http.StatusBadRequest)
 			return
 		}
 
-		p.LoadSaver.Save(filename, request, p.FileWriter)
+		if !methodFound {
+			http.Error(w, errNoRequestMethodFound.Error(), http.StatusBadRequest)
+			return
+		}
+
+		p.LoadSaver.Save(requestRoute.(string), requestMethod.(string), request, p.FileWriter)
 
 		json.NewEncoder(w).Encode(request)
 	}
@@ -65,23 +69,18 @@ func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 
 		params := mux.Vars(r)
 
-		request, _ := params["requestRoute"]
-		requestType := r.Method
+		requestRoute, _ := params["RequestRoute"]
+		requestMethod := r.Method
 
-		filename := fmt.Sprintf("%v-%v.json", requestType, request)
-
-		decodedFile, err := p.LoadSaver.Load(filename, p.FileReader)
+		result, err := p.LoadSaver.Load(requestRoute, requestMethod, p.FileReader)
 
 		if err != nil {
 			if err != nil {
-				http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", request), http.StatusBadRequest)
+				http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", requestRoute), http.StatusBadRequest)
 				return
 			}
 		}
 
-		// remove the filename
-		delete(decodedFile, "requestName")
-
-		json.NewEncoder(w).Encode(decodedFile)
+		json.NewEncoder(w).Encode(result)
 	}
 }
