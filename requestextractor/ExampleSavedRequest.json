@@ -1,0 +1,24 @@
+{
+    "requestName" : "test",    
+    "requestRoute" : "CreatePerson",
+    "requests": {
+        "request1" : {
+            "input" : {
+                "name" : "Will",
+                "job" : "Software Engineer"
+            },
+            "output" : {
+                "id" : "1111"
+            }
+        },
+        "request2" : {
+            "input" : {
+                "name" : "James",
+                "job" : "Manager"
+            },
+            "output" : {
+                "id" : "2222"
+            }
+        }
+    }
+}
