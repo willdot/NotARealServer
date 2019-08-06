@@ -30,7 +30,7 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 	return []byte(fakeJSON), nil
 }
 
-var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","request":{"something":"fake"}}`
+var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","Response":{"something":"fake"}}`
 var fakeBadJSON = `{"requestName`
 
 var testThing = PersistServer{
