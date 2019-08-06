@@ -21,12 +21,12 @@ func (f fakeFileReaderWriter) WriteFile(filename string, data []byte, perm os.Fi
 func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 
 	// For when the file can't be read such as doesn't exist
-	if filename == "bad file" {
+	if filename == "POST-bad file.json" {
 		return nil, errFakeError
 	}
 
 	// For when the data inside a json file is not correct such as missing a " somewhere
-	if filename == "bad.json" {
+	if filename == "POST-bad.json" {
 		result := []byte(testBadJSONFile)
 		return result, nil
 	}
@@ -37,8 +37,9 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 }
 
 type TestStruct struct {
-	Thing        string
-	AnotherThing TestSubStruct
+	RequestRoute  string
+	RequestMethod string
+	Response      interface{}
 }
 
 type TestSubStruct struct {
@@ -47,22 +48,55 @@ type TestSubStruct struct {
 }
 
 var testGoodJSONFile = `{
-	"Thing": "Hello",
-	"AnotherThing": {
+	"RequestRoute": "Hello",
+	"RequestMethod": "POST",
+	"Response": {
 	 "Count": "1",
 	 "Language": "Go"
 	}
    }`
 
 var testBadJSONFile = `{
-	"Thing": "Hello",
-	"AnotherThing": {
+	"RequestRoute": "Hello",
+	"RequestMethod": "POST",
+	"Response": {
 	 "Count": "1,
 	 "Language": "Go"
 	}
    }`
 
-func createData(good bool) map[string]interface{} {
+func createData(good bool) interface{} {
+
+	var result interface{}
+	if good {
+		thing := TestStruct{
+			RequestRoute:  "Hello",
+			RequestMethod: "POST",
+			Response: TestSubStruct{
+				Language: "Go",
+				Count:    1.000,
+			},
+		}
+
+		jsonByte, _ := json.Marshal(thing)
+		json.Unmarshal(jsonByte, &result)
+
+		return result
+	}
+
+	result = TestStruct{
+		RequestRoute:  "Hello",
+		RequestMethod: "POST",
+		Response: TestSubStruct{
+			Language: "Go",
+			Count:    math.Inf(1),
+		},
+	}
+
+	return result
+}
+
+/*func createData(good bool) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if good {
@@ -90,7 +124,7 @@ func createData(good bool) map[string]interface{} {
 
 	return result
 
-}
+}*/
 
 // This creates the same error that will be returned from json.Marshal when sending in data that isn't valid
 func createTestMarshalError() error {
@@ -134,7 +168,7 @@ func TestSave(t *testing.T) {
 
 			testData := createData(test.InputData)
 
-			got := testObj.Save("test", testData, fakeFileReaderWriter{})
+			got := testObj.Save("test", "POST", testData, fakeFileReaderWriter{})
 
 			AssertErrors(got, test.ExpectedError, t)
 		})
@@ -145,25 +179,32 @@ func TestLoad(t *testing.T) {
 
 	testCases := []struct {
 		Name          string
-		InputFileName string
-		OutputData    map[string]interface{}
+		RequestRoute  string
+		RequestMethod string
+		OutputData    interface{}
 		ExpectedError error
 	}{
 		{
 			"File valid, data returned, no error returned",
-			"good.json",
-			createData(true),
+			"good",
+			"POST",
+			TestSubStruct{
+				Count:    1,
+				Language: "Go",
+			},
 			nil,
 		},
 		{
 			"File invalid, no data returned, error returned",
 			"bad file",
+			"POST",
 			nil,
 			errFakeError,
 		},
 		{
 			"File valid, file data invalid, no data returned, error returned",
-			"bad.json",
+			"bad",
+			"POST",
 			nil,
 			createUnmarshalError(),
 		},
@@ -174,15 +215,19 @@ func TestLoad(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.Name, func(t *testing.T) {
 
-			got, err := testObj.Load(test.InputFileName, fakeFileReaderWriter{})
+			got, err := testObj.Load(test.RequestRoute, test.RequestMethod, fakeFileReaderWriter{})
 
 			AssertErrors(err, test.ExpectedError, t)
 
+			var want interface{}
+			jsonByte, _ := json.Marshal(test.OutputData)
+			json.Unmarshal(jsonByte, &want)
+
 			gotString := fmt.Sprintf("%v", got)
-			wantString := fmt.Sprintf("%v", test.OutputData)
+			wantString := fmt.Sprintf("%v", want)
 
 			if gotString != wantString {
-				t.Errorf("Got %v, wanted %v", got, test.OutputData)
+				t.Errorf("Got %v, wanted %v", got, want)
 			}
 
 		})

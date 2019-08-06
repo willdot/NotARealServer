@@ -3,13 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/willdot/NotARealServer/persistrequests"
 )
 
-var errNoRequestNameFound = errors.New("no request property found")
+var errNoRequestRouteFound = errors.New("no request route property found")
+var errNoRequestMethodFound = errors.New("no request method property found")
 
 // PersistServer allows the user to save or retrieve requests
 type PersistServer struct {
@@ -42,14 +44,20 @@ func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		filename, found := request["requestName"]
+		requestRoute, routeFound := request["RequestRoute"]
+		requestMethod, methodFound := request["RequestMethod"]
 
-		if !found {
-			http.Error(w, errNoRequestNameFound.Error(), http.StatusBadRequest)
+		if !routeFound {
+			http.Error(w, errNoRequestRouteFound.Error(), http.StatusBadRequest)
 			return
 		}
 
-		p.LoadSaver.Save(filename.(string), request, p.FileWriter)
+		if !methodFound {
+			http.Error(w, errNoRequestMethodFound.Error(), http.StatusBadRequest)
+			return
+		}
+
+		p.LoadSaver.Save(requestRoute.(string), requestMethod.(string), request, p.FileWriter)
 
 		json.NewEncoder(w).Encode(request)
 	}
@@ -61,20 +69,18 @@ func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 
 		params := mux.Vars(r)
 
-		request, _ := params["request"]
+		requestRoute, _ := params["RequestRoute"]
+		requestMethod := r.Method
 
-		decodedFile, err := p.LoadSaver.Load(request+".json", p.FileReader)
+		result, err := p.LoadSaver.Load(requestRoute, requestMethod, p.FileReader)
 
 		if err != nil {
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", requestRoute), http.StatusBadRequest)
 				return
 			}
 		}
 
-		// remove the filename
-		delete(decodedFile, "requestName")
-
-		json.NewEncoder(w).Encode(decodedFile)
+		json.NewEncoder(w).Encode(result)
 	}
 }
