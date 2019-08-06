@@ -62,8 +62,6 @@ var testBadJSONFile = `{
 	}
    }`
 
-var count float64
-
 func createData(good bool) map[string]interface{} {
 	result := make(map[string]interface{})
 
@@ -104,7 +102,6 @@ func createTestMarshalError() error {
 func createUnmarshalError() error {
 
 	a := []byte(testBadJSONFile)
-
 	var b map[string]interface{}
 	err := json.Unmarshal(a, &b)
 
