@@ -61,18 +61,13 @@ func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 
 		params := mux.Vars(r)
 
-		request, found := params["request"]
-
-		if !found {
-			http.Error(w, "Request asked for cannot be found", http.StatusBadRequest)
-			return
-		}
+		request, _ := params["request"]
 
 		decodedFile, err := p.LoadSaver.Load(request+".json", p.FileReader)
 
 		if err != nil {
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
 		}

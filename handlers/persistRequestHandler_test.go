@@ -24,18 +24,19 @@ func (f fakeFileReaderWriter) WriteFile(filename string, data []byte, perm os.Fi
 
 func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 
-	return nil, nil
+	if filename == "notexist.json" {
+		return []byte(fakeBadJSON), nil
+	}
+	return []byte(fakeJSON), nil
 }
+
+var fakeJSON = `{"requestName": "test", "Something" : "Fake"}`
+var fakeBadJSON = `{"requestName`
 
 var testThing = PersistServer{
 	FileWriter: fakeFileReaderWriter{},
 	FileReader: fakeFileReaderWriter{},
 	LoadSaver:  persistrequests.JSONPersist{},
-}
-
-type fake struct {
-	requestName string
-	something   string
 }
 
 func TestNewPersistServer(t *testing.T) {
@@ -73,13 +74,37 @@ func TestRetreiveRequestHandler(t *testing.T) {
 	handler := mux.NewRouter()
 	handler.HandleFunc("/{request}", testThing.RetreiveRequestHandler())
 
-	t.Run("Param ok. Request Exists. Request returned", func(t *testing.T) {
+	t.Run("Param ok. Request Exists. Request returned. requestName removed from data", func(t *testing.T) {
 		body := ""
 
 		rr := httptest.NewRecorder()
 
 		makeRequest(t, "/test", body, handler, rr)
 
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
+
+		got := strings.TrimSuffix(rr.Body.String(), "\n")
+
+		want := `{"Something":"Fake"}`
+
+		if got != want {
+			t.Errorf("handler returned unexpected body: got %v want %v",
+				rr.Body.String(), want)
+		}
+	})
+
+	t.Run("Param ok. Request file doesn't exist. Returns 400 bad request", func(t *testing.T) {
+		body := ""
+
+		rr := httptest.NewRecorder()
+
+		makeRequest(t, "/notexist", body, handler, rr)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
 	})
 }
 
@@ -96,9 +121,14 @@ func TestSaveRequestHandler(t *testing.T) {
 
 		makeRequest(t, "save", body, handler, rr)
 
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		}
+
 		got := strings.TrimSuffix(rr.Body.String(), "\n")
 
 		want := `{"requestName":"Test","something":"Hello"}`
+
 		if got != want {
 			t.Errorf("handler returned unexpected body: got %v want %v",
 				rr.Body.String(), want)
