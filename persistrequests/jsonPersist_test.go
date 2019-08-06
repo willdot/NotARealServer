@@ -39,7 +39,7 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 type TestStruct struct {
 	RequestRoute  string
 	RequestMethod string
-	Request       interface{}
+	Response      interface{}
 }
 
 type TestSubStruct struct {
@@ -50,7 +50,7 @@ type TestSubStruct struct {
 var testGoodJSONFile = `{
 	"RequestRoute": "Hello",
 	"RequestMethod": "POST",
-	"Request": {
+	"Response": {
 	 "Count": "1",
 	 "Language": "Go"
 	}
@@ -59,7 +59,7 @@ var testGoodJSONFile = `{
 var testBadJSONFile = `{
 	"RequestRoute": "Hello",
 	"RequestMethod": "POST",
-	"Request": {
+	"Response": {
 	 "Count": "1,
 	 "Language": "Go"
 	}
@@ -72,7 +72,7 @@ func createData(good bool) interface{} {
 		thing := TestStruct{
 			RequestRoute:  "Hello",
 			RequestMethod: "POST",
-			Request: TestSubStruct{
+			Response: TestSubStruct{
 				Language: "Go",
 				Count:    1.000,
 			},
@@ -87,7 +87,7 @@ func createData(good bool) interface{} {
 	result = TestStruct{
 		RequestRoute:  "Hello",
 		RequestMethod: "POST",
-		Request: TestSubStruct{
+		Response: TestSubStruct{
 			Language: "Go",
 			Count:    math.Inf(1),
 		},

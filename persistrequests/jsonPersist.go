@@ -42,12 +42,12 @@ func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (interfa
 		return nil, err
 	}
 
-	return savedRequest.Request, err
+	return savedRequest.Response, err
 }
 
 // SavedRequest is an entire saved request
 type SavedRequest struct {
 	RequestRoute  string
 	RequestMethod string
-	Request       interface{}
+	Response      interface{}
 }
