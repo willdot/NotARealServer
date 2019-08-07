@@ -7,6 +7,9 @@ This tool was created because sometimes when I'm creating front end applications
 This tool will run a fake http server and allow you to create fake requests and responses so that when you make a call to the server, it will return the fake response you created.
 
 ## Installation
+
+Clone the repository.
+
 ```
 docker-compose up
 ```
