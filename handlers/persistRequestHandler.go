@@ -15,9 +15,9 @@ var errNoRequestMethodFound = errors.New("no request method property found")
 
 // PersistServer allows the user to save or retrieve requests
 type PersistServer struct {
-	LoadSaver  persistrequests.JSONPersist
 	FileWriter persistrequests.Writer
 	FileReader persistrequests.Reader
+	LoadSaver  persistrequests.SaveLoadRequest
 }
 
 // NewPersistServer creates a new PersistServer and adds in dependencies

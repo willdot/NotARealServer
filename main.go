@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/willdot/NotARealServer/handlers"
 
@@ -10,6 +11,12 @@ import (
 )
 
 func main() {
+
+	var port string
+
+	if port = os.Getenv("PORT"); port == "" {
+		port = "8080"
+	}
 
 	server := handlers.NewPersistServer()
 
@@ -19,9 +26,8 @@ func main() {
 	router.HandleFunc("/basicwithbody", handlers.BasicWithBody())
 	router.HandleFunc("/save", server.SaveRequestHandler())
 	router.HandleFunc("/{RequestRoute}", server.RetreiveRequestHandler())
-	router.HandleFunc("/{RequestRoute}/{query}", server.RetreiveRequestHandler())
 
-	err := http.ListenAndServe(":8081", router)
+	err := http.ListenAndServe(":"+port, router)
 
 	if err != nil {
 		log.Fatal(err)

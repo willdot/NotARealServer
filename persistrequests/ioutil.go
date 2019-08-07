@@ -19,11 +19,6 @@ type Writer interface {
 	WriteFile(filename string, data []byte, perm os.FileMode) error
 }
 
-// SaveRequest is an interface to save a request
-type SaveRequest interface {
-	Save(requestRoute, requestMethod string, requestData interface{}, w Writer) error
-}
-
 //FileReader implements an abstraction of the ioutil.ReadFile
 type FileReader struct {
 }
@@ -38,7 +33,18 @@ type Reader interface {
 	ReadFile(filename string) ([]byte, error)
 }
 
+// SaveRequest is an interface to save a request
+type SaveRequest interface {
+	Save(requestRoute, requestMethod string, requestData interface{}, w Writer) error
+}
+
 // LoadRequest is an interface to load a request
 type LoadRequest interface {
 	Load(requestRoute, requestMethod string, r Reader) (interface{}, error)
+}
+
+// SaveLoadRequest allows the saving and loading of a request
+type SaveLoadRequest interface {
+	SaveRequest
+	LoadRequest
 }

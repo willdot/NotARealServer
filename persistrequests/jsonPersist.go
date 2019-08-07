@@ -45,7 +45,7 @@ func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (interfa
 	return savedRequest.Response, err
 }
 
-// SavedRequest is an entire saved request
+// SavedRequest is an entire saved request that requires a RequestRoute and RequestMethod. The Response is what the user wants to be returned when they make their fake API call.
 type SavedRequest struct {
 	RequestRoute  string
 	RequestMethod string
