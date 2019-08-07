@@ -58,3 +58,4 @@ In "Response" you can put any valid JSON. This is what will be returned to you w
 
 * Implement some form of header request / response so that you can test if a header is correct
 * Clear out request files
+* Add better error handling when user provides incorrect JSON
