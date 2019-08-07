@@ -21,11 +21,13 @@ type PersistServer struct {
 }
 
 // NewPersistServer creates a new PersistServer and adds in dependencies
-func NewPersistServer() PersistServer {
+func NewPersistServer(requestDirectory string) PersistServer {
 	return PersistServer{
 		FileWriter: persistrequests.FileWriter{},
 		FileReader: persistrequests.FileReader{},
-		LoadSaver:  persistrequests.JSONPersist{},
+		LoadSaver: persistrequests.JSONPersist{
+			RequestDirectory: requestDirectory,
+		},
 	}
 }
 

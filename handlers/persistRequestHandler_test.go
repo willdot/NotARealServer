@@ -44,7 +44,7 @@ var testThing = PersistServer{
 
 func TestNewPersistServer(t *testing.T) {
 
-	got := NewPersistServer()
+	got := NewPersistServer("")
 
 	want := PersistServer{
 		LoadSaver:  persistrequests.JSONPersist{},
