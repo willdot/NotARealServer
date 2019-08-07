@@ -61,6 +61,7 @@ func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 
 		p.LoadSaver.Save(requestRoute.(string), requestMethod.(string), requestContent, p.FileWriter)
 
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(requestContent)
 	}
 }
@@ -83,6 +84,7 @@ func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 			}
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
 	}
 }

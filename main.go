@@ -30,7 +30,7 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/basic", handlers.BasicWithBody())
+	router.HandleFunc("/basic", handlers.Basic())
 	router.HandleFunc("/basicwithbody", handlers.BasicWithBody())
 	router.HandleFunc("/save", server.SaveRequestHandler())
 	router.HandleFunc("/{RequestRoute}", server.RetreiveRequestHandler())
