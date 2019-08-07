@@ -78,10 +78,8 @@ func (p *PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 		result, err := p.LoadSaver.Load(requestRoute, requestMethod, p.FileReader)
 
 		if err != nil {
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", requestRoute), http.StatusBadRequest)
-				return
-			}
+			http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", requestRoute), http.StatusBadRequest)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
