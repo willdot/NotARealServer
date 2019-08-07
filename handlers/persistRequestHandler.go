@@ -72,7 +72,7 @@ func (p *PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 
 		params := mux.Vars(r)
 
-		requestRoute, _ := params["RequestRoute"]
+		requestRoute := params["RequestRoute"]
 		requestMethod := r.Method
 
 		result, err := p.LoadSaver.Load(requestRoute, requestMethod, p.FileReader)
