@@ -35,11 +35,7 @@ func main() {
 	router.HandleFunc("/save", server.SaveRequestHandler())
 	router.HandleFunc("/{RequestRoute}", server.RetreiveRequestHandler())
 
-	err := http.ListenAndServe(":"+port, router)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
 func validateRequestDirectory(dir *string) {
