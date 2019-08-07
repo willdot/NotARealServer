@@ -8,20 +8,6 @@ import (
 )
 
 func TestBasic(t *testing.T) {
-	var makeRequest = func(t *testing.T, url, body string, handler http.Handler, rr *httptest.ResponseRecorder) {
-
-		t.Helper()
-
-		req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(body))
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-
-		handler.ServeHTTP(rr, req)
-	}
 
 	testCases := []struct {
 		Name               string
@@ -31,25 +17,25 @@ func TestBasic(t *testing.T) {
 		ExpectedBody       string
 	}{
 		{
-			"Basic handler, returns simple string",
-			"",
-			Basic(),
-			http.StatusOK,
-			"You hit basic",
+			Name:               "Basic handler, returns simple string",
+			Body:               "",
+			Handler:            Basic(),
+			ExpectedStatusCode: http.StatusOK,
+			ExpectedBody:       "You hit basic",
 		},
 		{
-			"BasicWithBody handler, request body ok, returns request",
-			`{"Basic":"Request"}`,
-			BasicWithBody(),
-			http.StatusOK,
-			`{"Basic":"Request"}`,
+			Name:               "BasicWithBody handler, request body ok, returns request",
+			Body:               `{"Basic":"Request"}`,
+			Handler:            BasicWithBody(),
+			ExpectedStatusCode: http.StatusOK,
+			ExpectedBody:       `{"Basic":"Request"}`,
 		},
 		{
-			"BasicWithBody handler, request body not ok, returns 400",
-			`{"Basic`,
-			BasicWithBody(),
-			http.StatusBadRequest,
-			"unexpected EOF",
+			Name:               "BasicWithBody handler, request body not ok, returns 400",
+			Body:               `{"Basic`,
+			Handler:            BasicWithBody(),
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "unexpected EOF",
 		},
 	}
 

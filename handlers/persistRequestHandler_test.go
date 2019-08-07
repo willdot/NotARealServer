@@ -24,14 +24,17 @@ func (f fakeFileReaderWriter) WriteFile(filename string, data []byte, perm os.Fi
 
 func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 
-	if filename == "POST-notexist.json" {
-		return []byte(fakeBadJSON), nil
+	if filename == "POST-badjson.json" {
+
+		fakeJSON = strings.TrimRight(fakeJSON, `"}}`)
+
+		return []byte(fakeJSON), nil
 	}
 	return []byte(fakeJSON), nil
+
 }
 
 var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","Response":{"something":"fake"}}`
-var fakeBadJSON = `{"requestName`
 
 var testThing = PersistServer{
 	FileWriter: fakeFileReaderWriter{},
@@ -54,139 +57,100 @@ func TestNewPersistServer(t *testing.T) {
 	}
 }
 
-var makeRequest = func(t *testing.T, url, body string, handler http.Handler, rr *httptest.ResponseRecorder) {
-
-	t.Helper()
-
-	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(body))
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	handler.ServeHTTP(rr, req)
-}
-
 func TestRetreiveRequestHandler(t *testing.T) {
+
+	testCases := []struct {
+		Name               string
+		Route              string
+		ExpectedStatusCode int
+		ExpectedBody       string
+	}{
+		{
+			Name:               "Param ok. Request Exists. Request returned. requestName removed from data",
+			Route:              "/test",
+			ExpectedStatusCode: http.StatusOK,
+			ExpectedBody:       `{"something":"fake"}`,
+		},
+		{
+			Name:               "Param ok. Request file doesn't exist. Returns 400 bad request",
+			Route:              "/badjson",
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "Problem retreiving request 'badjson'",
+		},
+	}
 
 	handler := mux.NewRouter()
 	handler.HandleFunc("/{RequestRoute}", testThing.RetreiveRequestHandler())
 
-	t.Run("Param ok. Request Exists. Request returned. requestName removed from data", func(t *testing.T) {
-		body := ""
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+			rr := httptest.NewRecorder()
+			makeRequest(t, test.Route, "", handler, rr)
 
-		rr := httptest.NewRecorder()
+			if status := rr.Code; status != test.ExpectedStatusCode {
+				t.Errorf("handler returned wrong status code: got %v want %v", status, test.ExpectedStatusCode)
+			}
 
-		makeRequest(t, "/test", body, handler, rr)
+			got := strings.TrimSuffix(rr.Body.String(), "\n")
 
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
-
-		got := strings.TrimSuffix(rr.Body.String(), "\n")
-
-		want := `{"something":"fake"}`
-
-		if got != want {
-			t.Errorf("handler returned unexpected body: got %v want %v",
-				rr.Body.String(), want)
-		}
-	})
-
-	t.Run("Param ok. Request file doesn't exist. Returns 400 bad request", func(t *testing.T) {
-		body := ""
-
-		rr := httptest.NewRecorder()
-
-		makeRequest(t, "/notexist", body, handler, rr)
-
-		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
-		}
-	})
+			if got != test.ExpectedBody {
+				t.Errorf("handler returned unexpected body: got %v want %v",
+					rr.Body.String(), test.ExpectedBody)
+			}
+		})
+	}
 }
 
 func TestSaveRequestHandler(t *testing.T) {
 	handler := testThing.SaveRequestHandler()
 
-	t.Run("Body ok. Returns 200", func(t *testing.T) {
-		body := `{
-			"RequestRoute" : "Test",
-			"RequestMethod" : "POST",
-			"Request" : {
-				"Something" : "Fake"
+	testCases := []struct {
+		Name               string
+		Body               string
+		ExpectedStatusCode int
+		ExpectedBody       string
+	}{
+		{
+			Name:               "Body ok. Returns 200",
+			Body:               `{"RequestRoute" : "Test","RequestMethod" : "POST","Request" : {"Something" : "Fake"}}`,
+			ExpectedStatusCode: http.StatusOK,
+			ExpectedBody:       `{"Request":{"Something":"Fake"},"RequestMethod":"POST","RequestRoute":"Test"}`,
+		},
+		{
+			Name:               "Body not ok. Returns 400",
+			Body:               `{"RequestRoute" : "Test}`,
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "unexpected EOF",
+		},
+		{
+			Name:               "Body doesn't have RequestRoute property. Returns 400",
+			Body:               `{"RequestMethod" : "POST","Request" : {"Something" : "Fake"}}`,
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "no request route property found",
+		},
+		{
+			Name:               "Body doesn't have RequestMethod property. Returns 400",
+			Body:               `{"RequestRoute" : "Test","Request" : {"Something" : "Fake"}}`,
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "no request method property found",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+			rr := httptest.NewRecorder()
+			makeRequest(t, "save", test.Body, handler, rr)
+
+			if status := rr.Code; status != test.ExpectedStatusCode {
+				t.Errorf("handler returned wrong status code: got %v want %v", status, test.ExpectedStatusCode)
 			}
-		   }`
 
-		rr := httptest.NewRecorder()
+			got := strings.TrimSuffix(rr.Body.String(), "\n")
 
-		makeRequest(t, "save", body, handler, rr)
-
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
-
-		got := strings.TrimSuffix(rr.Body.String(), "\n")
-
-		want := `{"Request":{"Something":"Fake"},"RequestMethod":"POST","RequestRoute":"Test"}`
-
-		if got != want {
-			t.Errorf("handler returned unexpected body: got %v want %v",
-				rr.Body.String(), want)
-		}
-	})
-
-	t.Run("Body not ok. Returns 400", func(t *testing.T) {
-		body := `{
-			"RequestRoute" : "Test",
-			"RequestMethod" : "POST,
-			"Request" : {
-				"Something" : "Fake"
+			if got != test.ExpectedBody {
+				t.Errorf("handler returned unexpected body: got %v want %v",
+					rr.Body.String(), test.ExpectedBody)
 			}
-		   }`
-
-		rr := httptest.NewRecorder()
-
-		makeRequest(t, "save", body, handler, rr)
-
-		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
-	})
-
-	t.Run("Body doesn't have RequestRoute property. Returns 400", func(t *testing.T) {
-		body := `{
-			"RequestMethod" : "POST",
-			"Request" : {
-				"Something" : "Fake"
-			}
-		   }`
-
-		rr := httptest.NewRecorder()
-
-		makeRequest(t, "save", body, handler, rr)
-
-		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
-	})
-
-	t.Run("Body doesn't have RequestMethod property. Returns 400", func(t *testing.T) {
-		body := `{
-			"RequestRoute" : "Test",
-			"Request" : {
-				"Something" : "Fake"
-			}
-		   }`
-
-		rr := httptest.NewRecorder()
-
-		makeRequest(t, "save", body, handler, rr)
-
-		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
-	})
+		})
+	}
 }
