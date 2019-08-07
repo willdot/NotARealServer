@@ -8,73 +8,52 @@ import (
 )
 
 func TestBasic(t *testing.T) {
-	var makeRequest = func(t *testing.T, url, body string, handler http.Handler, rr *httptest.ResponseRecorder) {
 
-		t.Helper()
-
-		req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(body))
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-
-		handler.ServeHTTP(rr, req)
+	testCases := []struct {
+		Name               string
+		Body               string
+		Handler            http.HandlerFunc
+		ExpectedStatusCode int
+		ExpectedBody       string
+	}{
+		{
+			Name:               "Basic handler, returns simple string",
+			Body:               "",
+			Handler:            Basic(),
+			ExpectedStatusCode: http.StatusOK,
+			ExpectedBody:       "You hit basic",
+		},
+		{
+			Name:               "BasicWithBody handler, request body ok, returns request",
+			Body:               `{"Basic":"Request"}`,
+			Handler:            BasicWithBody(),
+			ExpectedStatusCode: http.StatusOK,
+			ExpectedBody:       `{"Basic":"Request"}`,
+		},
+		{
+			Name:               "BasicWithBody handler, request body not ok, returns 400",
+			Body:               `{"Basic`,
+			Handler:            BasicWithBody(),
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "unexpected EOF",
+		},
 	}
 
-	t.Run("Basic handler, returns simple string", func(t *testing.T) {
-		rr := httptest.NewRecorder()
-		handler := Basic()
-		body := ""
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+			rr := httptest.NewRecorder()
+			makeRequest(t, "", test.Body, test.Handler, rr)
 
-		makeRequest(t, "", body, handler, rr)
+			if status := rr.Code; status != test.ExpectedStatusCode {
+				t.Errorf("handler returned wrong status code: got %v want %v", status, test.ExpectedStatusCode)
+			}
 
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
+			got := strings.TrimSuffix(rr.Body.String(), "\n")
 
-		got := strings.TrimSuffix(rr.Body.String(), "\n")
-
-		want := "You hit basic"
-
-		if got != want {
-			t.Errorf("handler returned unexpected body: got %v want %v",
-				rr.Body.String(), want)
-		}
-	})
-
-	t.Run("BasicWithBody handler, request body ok, returns request", func(t *testing.T) {
-		rr := httptest.NewRecorder()
-		handler := BasicWithBody()
-		body := `{"Basic":"Request"}`
-
-		makeRequest(t, "", body, handler, rr)
-
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
-
-		got := strings.TrimSuffix(rr.Body.String(), "\n")
-
-		want := body
-
-		if got != want {
-			t.Errorf("handler returned unexpected body: got %v want %v",
-				rr.Body.String(), want)
-		}
-
-	})
-
-	t.Run("BasicWithBody handler, request body not ok, returns 400", func(t *testing.T) {
-		rr := httptest.NewRecorder()
-		handler := BasicWithBody()
-		body := `{"Basic`
-
-		makeRequest(t, "", body, handler, rr)
-
-		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
-	})
+			if got != test.ExpectedBody {
+				t.Errorf("handler returned unexpected body: got %v want %v",
+					rr.Body.String(), test.ExpectedBody)
+			}
+		})
+	}
 }
