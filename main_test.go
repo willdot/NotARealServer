@@ -23,7 +23,7 @@ func TestRequestPathTrailingSlash(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.Name, func(t *testing.T) {
-			makeSureRequestDirectoryHasTrailingSlash(&test.Input)
+			validateRequestDirectory(&test.Input)
 
 			if test.Input != test.ExpectedOutput {
 				t.Errorf("got %v want %v", test.Input, test.ExpectedOutput)

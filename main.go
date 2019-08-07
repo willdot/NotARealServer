@@ -24,7 +24,7 @@ func main() {
 		requestFileDirectory = "requests/"
 	}
 
-	makeSureRequestDirectoryHasTrailingSlash(&requestFileDirectory)
+	validateRequestDirectory(&requestFileDirectory)
 
 	server := handlers.NewPersistServer(requestFileDirectory)
 
@@ -35,14 +35,10 @@ func main() {
 	router.HandleFunc("/save", server.SaveRequestHandler())
 	router.HandleFunc("/{RequestRoute}", server.RetreiveRequestHandler())
 
-	err := http.ListenAndServe(":"+port, router)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
-func makeSureRequestDirectoryHasTrailingSlash(dir *string) {
+func validateRequestDirectory(dir *string) {
 	if strings.HasSuffix(*dir, "/") == false {
 		*dir += "/"
 	}
