@@ -53,7 +53,7 @@ func TestLoad(t *testing.T) {
 		{
 			Name:         "File valid, data returned, no error returned",
 			RequestRoute: "good",
-			OutputData: TestSubStruct{
+			OutputData: Something{
 				Count:    1,
 				Language: "Go",
 			},
@@ -156,13 +156,7 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 	return result, nil
 }
 
-type TestStruct struct {
-	RequestRoute  string
-	RequestMethod string
-	Response      interface{}
-}
-
-type TestSubStruct struct {
+type Something struct {
 	Language string
 	Count    float64
 }
@@ -171,10 +165,10 @@ func createData(goodData bool) interface{} {
 
 	var result interface{}
 	if goodData {
-		thing := TestStruct{
+		thing := SavedRequest{
 			RequestRoute:  "Hello",
 			RequestMethod: "POST",
-			Response: TestSubStruct{
+			Response: Something{
 				Language: "Go",
 				Count:    1.000,
 			},
@@ -186,10 +180,10 @@ func createData(goodData bool) interface{} {
 		return result
 	}
 
-	result = TestStruct{
+	result = SavedRequest{
 		RequestRoute:  "Hello",
 		RequestMethod: "POST",
-		Response: TestSubStruct{
+		Response: Something{
 			Language: "Go",
 			Count:    math.Inf(1),
 		},
