@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/willdot/NotARealServer/handlers"
 
@@ -18,7 +19,14 @@ func main() {
 		port = "8080"
 	}
 
-	server := handlers.NewPersistServer()
+	var requestFileDirectory string
+	if requestFileDirectory = os.Getenv("REQUESTDIRECTORY"); requestFileDirectory == "" {
+		requestFileDirectory = "requests/"
+	}
+
+	makeSureRequestDirectoryHasTrailingSlash(&requestFileDirectory)
+
+	server := handlers.NewPersistServer(requestFileDirectory)
 
 	router := mux.NewRouter()
 
@@ -31,5 +39,11 @@ func main() {
 
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func makeSureRequestDirectoryHasTrailingSlash(dir *string) {
+	if strings.HasSuffix(*dir, "/") == false {
+		*dir += "/"
 	}
 }

@@ -1,0 +1,14 @@
+version: '2'
+services:
+  app:
+    container_name: fakeServer
+    build: .
+    command: go run main.go
+    volumes:
+      - .:/go/src/app
+    working_dir: /go/src/app
+    ports:
+      - "8008:8080"
+    environment:
+      PORT: 8008
+      REQUESTDIRECTORY: requests

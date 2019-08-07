@@ -7,6 +7,7 @@ import (
 
 // JSONPersist will allow a request to be saved and loaded to/from a JSON file
 type JSONPersist struct {
+	RequestDirectory string
 }
 
 // Save will save a request to a json file
@@ -19,7 +20,7 @@ func (j JSONPersist) Save(requestRoute, requestMethod string, requestData interf
 	}
 
 	filename := fmt.Sprintf("%v-%v.json", requestMethod, requestRoute)
-	err = w.WriteFile(filename, file, 0644)
+	err = w.WriteFile(j.RequestDirectory+filename, file, 0644)
 
 	return err
 }
@@ -28,7 +29,7 @@ func (j JSONPersist) Save(requestRoute, requestMethod string, requestData interf
 func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (interface{}, error) {
 
 	filename := fmt.Sprintf("%v-%v.json", requestMethod, requestRoute)
-	byteValue, err := r.ReadFile(filename)
+	byteValue, err := r.ReadFile(j.RequestDirectory + filename)
 
 	if err != nil {
 		return nil, err
