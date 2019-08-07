@@ -47,10 +47,10 @@ In "Response" you can put any valid JSON. This is what will be returned to you w
 ``` json
 {
     "Thing" : "Some thing",
-        "Number" : "123",
-        "Something": {
-            "Text" : "Some text"
-        }
+    "Number" : "123",
+    "Something": {
+        "Text" : "Some text"
+    }
 }
 ```
 
