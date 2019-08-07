@@ -24,7 +24,7 @@ func main() {
 		requestFileDirectory = "requests/"
 	}
 
-	makeSureRequestDirectoryHasTrailingSlash(&requestFileDirectory)
+	validateRequestDirectory(&requestFileDirectory)
 
 	server := handlers.NewPersistServer(requestFileDirectory)
 
@@ -42,7 +42,7 @@ func main() {
 	}
 }
 
-func makeSureRequestDirectoryHasTrailingSlash(dir *string) {
+func validateRequestDirectory(dir *string) {
 	if strings.HasSuffix(*dir, "/") == false {
 		*dir += "/"
 	}

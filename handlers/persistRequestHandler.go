@@ -32,7 +32,7 @@ func NewPersistServer(requestDirectory string) PersistServer {
 }
 
 // SaveRequestHandler takes the body of the request and saves it as a json file
-func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
+func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		decoder := json.NewDecoder(r.Body)
@@ -67,7 +67,7 @@ func (p PersistServer) SaveRequestHandler() http.HandlerFunc {
 }
 
 // RetreiveRequestHandler takes the first parameter of the url and tried to return a saved request with that name
-func (p PersistServer) RetreiveRequestHandler() http.HandlerFunc {
+func (p *PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		params := mux.Vars(r)
