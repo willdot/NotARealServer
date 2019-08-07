@@ -16,7 +16,7 @@ docker-compose up
 
 ## Usage
 
-Once the docker container is up and running, use something like Postman to make a GET request to http://localhost:8080/basic and check you get a response. You can also test a POST request by making a request http://localhost:8080/basic with a JSON body.
+Once the docker container is up and running, use something like Postman to make a GET request to http://localhost:8080/basic and check you get a response. You can also test a POST request by making a request http://localhost:8080/basicwithbody with a JSON body.
 
 ### Save a request and response
 
