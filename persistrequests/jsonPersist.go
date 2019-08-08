@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 var errNoRequestRouteFound = errors.New("no request route property found")
@@ -32,7 +33,7 @@ func (j JSONPersist) Save(requestData map[string]interface{}, w Writer) error {
 		return err
 	}
 
-	filename := fmt.Sprintf("%v-%v.json", requestMethod, requestRoute)
+	filename := createFilename(requestMethod.(string), requestRoute.(string))
 	err = w.WriteFile(j.RequestDirectory+filename, file, 0644)
 
 	return err
@@ -41,7 +42,7 @@ func (j JSONPersist) Save(requestData map[string]interface{}, w Writer) error {
 // Load will load a json from a file
 func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (interface{}, error) {
 
-	filename := fmt.Sprintf("%v-%v.json", requestMethod, requestRoute)
+	filename := createFilename(requestMethod, requestRoute)
 	byteValue, err := r.ReadFile(j.RequestDirectory + filename)
 
 	if err != nil {
@@ -57,6 +58,10 @@ func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (interfa
 	}
 
 	return savedRequest.Response, nil
+}
+
+func createFilename(requestMethod, requestRoute string) string {
+	return fmt.Sprintf("%v-%v.json", strings.ToUpper(requestMethod), strings.ToLower(requestRoute))
 }
 
 // SavedRequest is an entire saved request that requires a RequestRoute and RequestMethod. The Response is what the user wants to be returned when they make their fake API call.
