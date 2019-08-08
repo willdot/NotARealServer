@@ -2,8 +2,12 @@ package persistrequests
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
+
+var errNoRequestRouteFound = errors.New("no request route property found")
+var errNoRequestMethodFound = errors.New("no request method property found")
 
 // JSONPersist will allow a request to be saved and loaded to/from a JSON file
 type JSONPersist struct {
@@ -11,8 +15,17 @@ type JSONPersist struct {
 }
 
 // Save will save a request to a json file
-func (j JSONPersist) Save(requestRoute, requestMethod string, requestData interface{}, w Writer) error {
+func (j JSONPersist) Save(requestData map[string]interface{}, w Writer) error {
 
+	requestMethod := requestData["RequestMethod"]
+	if requestMethod == "" {
+		return errNoRequestMethodFound
+	}
+
+	requestRoute := requestData["RequestRoute"]
+	if requestRoute == "" {
+		return errNoRequestRouteFound
+	}
 	file, err := json.MarshalIndent(requestData, "", " ")
 
 	if err != nil {
