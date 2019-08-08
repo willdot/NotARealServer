@@ -11,7 +11,9 @@ import (
 )
 
 var errNoRequestRouteFound = errors.New("no request route property found")
+var errRequestRouteIsNotString = errors.New("the request route provided is not a string")
 var errNoRequestMethodFound = errors.New("no request method property found")
+var errRequestMethodIsNotString = errors.New("the request method provided is not a string")
 
 // PersistServer allows the user to save or retrieve requests
 type PersistServer struct {
@@ -31,6 +33,38 @@ func NewPersistServer(requestDirectory string) PersistServer {
 	}
 }
 
+func verifyRequestRouteAndMethod(request map[string]interface{}) error {
+
+	route, ok := request["RequestRoute"]
+	if !ok {
+		return errNoRequestRouteFound
+	}
+
+	if !isTypeString(route) {
+		return errRequestRouteIsNotString
+	}
+
+	method, ok := request["RequestMethod"]
+	if !ok {
+		return errNoRequestMethodFound
+	}
+
+	if !isTypeString(method) {
+		return errRequestMethodIsNotString
+	}
+
+	return nil
+}
+
+func isTypeString(item interface{}) bool {
+	switch item.(type) {
+	case string:
+		return true
+	default:
+		return false
+	}
+}
+
 // SaveRequestHandler takes the body of the request and saves it as a json file
 func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -46,15 +80,10 @@ func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		_, ok := requestContent["RequestRoute"]
-		if !ok {
-			http.Error(w, errNoRequestRouteFound.Error(), http.StatusBadRequest)
-			return
-		}
+		err = verifyRequestRouteAndMethod(requestContent)
 
-		_, ok = requestContent["RequestMethod"]
-		if !ok {
-			http.Error(w, errNoRequestMethodFound.Error(), http.StatusBadRequest)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 

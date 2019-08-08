@@ -146,6 +146,18 @@ func TestSaveRequestHandler(t *testing.T) {
 			ExpectedStatusCode: http.StatusBadRequest,
 			ExpectedBody:       "no request method property found",
 		},
+		{
+			Name:               "Bodies RequestRoute is not a string. Returns 400",
+			Body:               `{"RequestRoute" : {"Route" : "WRONG"},"RequestMethod" : "POST","Request" : {"Something" : "Fake"}}`,
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "the request route provided is not a string",
+		},
+		{
+			Name:               "Bodies RequestMethod is not a string. Returns 400",
+			Body:               `{"RequestRoute" : "Test","RequestMethod" : {"Method" : "WRONG"},"Request" : {"Something" : "Fake"}}`,
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "the request method provided is not a string",
+		},
 	}
 
 	for _, test := range testCases {
@@ -162,6 +174,40 @@ func TestSaveRequestHandler(t *testing.T) {
 			if got != test.ExpectedBody {
 				t.Errorf("handler returned unexpected body: got %v want %v",
 					rr.Body.String(), test.ExpectedBody)
+			}
+		})
+	}
+}
+
+func TestIsTypeString(t *testing.T) {
+	testCases := []struct {
+		Name           string
+		Input          interface{}
+		ExpectedResult bool
+	}{
+		{
+			Name:           "Input is string. Returns true",
+			Input:          "Hello",
+			ExpectedResult: true,
+		},
+		{
+			Name:           "Input is int. Returns false",
+			Input:          1,
+			ExpectedResult: false,
+		},
+		{
+			Name:           "Input is struct. Returns false",
+			Input:          FakeFileWriter{},
+			ExpectedResult: false,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+			got := isTypeString(test.Input)
+
+			if got != test.ExpectedResult {
+				t.Errorf("got %v, want %v", got, test.ExpectedResult)
 			}
 		})
 	}
