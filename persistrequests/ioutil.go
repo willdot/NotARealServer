@@ -35,7 +35,7 @@ type Reader interface {
 
 // SaveRequest is an interface to save a request
 type SaveRequest interface {
-	Save(requestRoute, requestMethod string, requestData interface{}, w Writer) error
+	Save(requestData map[string]interface{}, w Writer) error
 }
 
 // LoadRequest is an interface to load a request

@@ -12,19 +12,39 @@ import (
 func TestSave(t *testing.T) {
 
 	testCases := []struct {
-		Name          string
-		InputData     bool
-		ExpectedError error
+		Name             string
+		ValidRequestData bool
+		RequestRoute     string
+		RequestMethod    string
+		ExpectedError    error
 	}{
 		{
-			Name:          "Data input valid, no error returned",
-			InputData:     true,
-			ExpectedError: nil,
+			Name:             "Data input valid, no error returned",
+			ValidRequestData: true,
+			RequestRoute:     "POST",
+			RequestMethod:    "Test",
+			ExpectedError:    nil,
 		},
 		{
-			Name:          "Data input invalid, error returned",
-			InputData:     false,
-			ExpectedError: createTestMarshalError(),
+			Name:             "Data input invalid, error returned",
+			ValidRequestData: false,
+			RequestRoute:     "POST",
+			RequestMethod:    "Test",
+			ExpectedError:    createTestMarshalError(),
+		},
+		{
+			Name:             "Request route not found, error returned",
+			ValidRequestData: true,
+			RequestRoute:     "",
+			RequestMethod:    "POST",
+			ExpectedError:    errNoRequestRouteFound,
+		},
+		{
+			Name:             "Request method not found, error returned",
+			ValidRequestData: true,
+			RequestRoute:     "Test",
+			RequestMethod:    "",
+			ExpectedError:    errNoRequestMethodFound,
 		},
 	}
 
@@ -33,9 +53,9 @@ func TestSave(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.Name, func(t *testing.T) {
 
-			testData := createData(test.InputData)
+			testData := createData(test.ValidRequestData, test.RequestRoute, test.RequestMethod)
 
-			got := testObj.Save("test", "POST", testData, fakeFileReaderWriter{})
+			got := testObj.Save(testData, fakeFileReaderWriter{})
 
 			assertErrors(got, test.ExpectedError, t)
 		})
@@ -161,13 +181,14 @@ type Something struct {
 	Count    float64
 }
 
-func createData(goodData bool) interface{} {
+func createData(goodData bool, requestRoute, requestMethod string) map[string]interface{} {
 
-	var result interface{}
+	var result map[string]interface{}
+	result = make(map[string]interface{})
 	if goodData {
 		thing := SavedRequest{
-			RequestRoute:  "Hello",
-			RequestMethod: "POST",
+			RequestRoute:  requestRoute,
+			RequestMethod: requestMethod,
 			Response: Something{
 				Language: "Go",
 				Count:    1.000,
@@ -180,14 +201,16 @@ func createData(goodData bool) interface{} {
 		return result
 	}
 
-	result = SavedRequest{
-		RequestRoute:  "Hello",
-		RequestMethod: "POST",
+	request := SavedRequest{
+		RequestRoute:  requestRoute,
+		RequestMethod: "requestMethod",
 		Response: Something{
 			Language: "Go",
 			Count:    math.Inf(1),
 		},
 	}
+
+	result["test"] = request
 
 	return result
 }

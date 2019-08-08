@@ -46,8 +46,8 @@ func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		requestRoute, routeFound := requestContent["RequestRoute"]
-		requestMethod, methodFound := requestContent["RequestMethod"]
+		_, routeFound := requestContent["RequestRoute"]
+		_, methodFound := requestContent["RequestMethod"]
 
 		if !routeFound {
 			http.Error(w, errNoRequestRouteFound.Error(), http.StatusBadRequest)
@@ -59,7 +59,12 @@ func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		p.LoadSaver.Save(requestRoute.(string), requestMethod.(string), requestContent, p.FileWriter)
+		err = p.LoadSaver.Save(requestContent, p.FileWriter)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(requestContent)

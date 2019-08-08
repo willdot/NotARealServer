@@ -134,6 +134,18 @@ func TestSaveRequestHandler(t *testing.T) {
 			ExpectedStatusCode: http.StatusBadRequest,
 			ExpectedBody:       "no request method property found",
 		},
+		{
+			Name:               "Bodies RequestRoute is empty. Returns 400",
+			Body:               `{"RequestRoute" : "","RequestMethod" : "POST","Request" : {"Something" : "Fake"}}`,
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "no request route property found",
+		},
+		{
+			Name:               "Bodies RequestMethod is empty. Returns 400",
+			Body:               `{"RequestRoute" : "Test","RequestMethod" : "","Request" : {"Something" : "Fake"}}`,
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "no request method property found",
+		},
 	}
 
 	for _, test := range testCases {
