@@ -6,24 +6,20 @@ import (
 	"testing"
 )
 
-type fakeRemover struct{}
+type fakeRemover struct {
+	err error
+}
 
 const directoryPath = "path/"
 
 var errFileNotExists = errors.New("file does not exist")
 
-func (fakeRemover) Remove(name string) error {
+func (f fakeRemover) Remove(name string) error {
 
-	if name == directoryPath+"WRONG-hello.json" {
-		return os.ErrNotExist
-	}
-
-	return nil
+	return f.err
 }
 
 func TestRemoveRequest(t *testing.T) {
-
-	fs := fakeRemover{}
 
 	testCases := []struct {
 		Name          string
@@ -47,7 +43,11 @@ func TestRemoveRequest(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.Name, func(t *testing.T) {
-			err := JSONPersist{directoryPath}.RemoveRequest(test.Method, test.Route, fs)
+
+			jp := JSONPersist{directoryPath}
+			fr := fakeRemover{err: test.ExpectedError}
+
+			err := jp.RemoveRequest(test.Method, test.Route, fr)
 
 			if err != test.ExpectedError {
 				t.Errorf("Didn't want an error, but got %v", err)

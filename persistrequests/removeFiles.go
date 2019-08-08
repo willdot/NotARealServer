@@ -7,3 +7,5 @@ func (j JSONPersist) RemoveRequest(method, route string, r Remover) error {
 
 	return r.Remove(j.RequestDirectory + filename)
 }
+
+
