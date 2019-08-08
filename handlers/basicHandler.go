@@ -6,16 +6,16 @@ import (
 	"net/http"
 )
 
-// Basic is a simple handler that just returns a 200 status code and an ok message
-func Basic() http.HandlerFunc {
+// BasicHandler is a simple handler that just returns a 200 status code and an ok message
+func BasicHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		io.WriteString(w, "You hit basic")
 	}
 }
 
-// BasicWithBody will return the body that was sent in with the request
-func BasicWithBody() http.HandlerFunc {
+// BasicWithBodyHandler will return the body that was sent in with the request
+func BasicWithBodyHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		decoder := json.NewDecoder(r.Body)
