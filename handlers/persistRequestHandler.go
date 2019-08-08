@@ -46,15 +46,14 @@ func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		_, routeFound := requestContent["RequestRoute"]
-		_, methodFound := requestContent["RequestMethod"]
-
-		if !routeFound {
+		_, ok := requestContent["RequestRoute"]
+		if !ok {
 			http.Error(w, errNoRequestRouteFound.Error(), http.StatusBadRequest)
 			return
 		}
 
-		if !methodFound {
+		_, ok = requestContent["RequestMethod"]
+		if !ok {
 			http.Error(w, errNoRequestMethodFound.Error(), http.StatusBadRequest)
 			return
 		}
