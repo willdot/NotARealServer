@@ -29,7 +29,6 @@ The body of the request must look like this:
     "RequestRoute" : "CreateTest",
     "RequestMethod" : "POST",
     "Response" : {
-        // Any valid JSON can go in here.
         "Thing" : "Some thing",
         "Number" : "123",
         "Something": {
