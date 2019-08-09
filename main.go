@@ -26,13 +26,15 @@ func main() {
 
 	validateRequestDirectory(&requestFileDirectory)
 
-	server := handlers.NewPersistServer(requestFileDirectory)
+	server := handlers.NewServer(requestFileDirectory)
 
 	router := mux.NewRouter()
 
 	router.HandleFunc("/basic", handlers.BasicHandler())
 	router.HandleFunc("/basicwithbody", handlers.BasicWithBodyHandler())
 	router.HandleFunc("/save", server.SaveRequestHandler())
+	router.HandleFunc("/remove", server.RemoveRequestHandler())
+	router.HandleFunc("/removeall", server.RemoveAllRequestsHandler())
 	router.HandleFunc("/{RequestRoute}", server.RetreiveRequestHandler())
 
 	log.Fatal(http.ListenAndServe(":"+port, router))

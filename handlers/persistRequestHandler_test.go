@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -34,27 +34,40 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 
 }
 
-var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","Response":{"something":"fake"}}`
-
-var testThing = PersistServer{
-	FileWriter: fakeFileReaderWriter{},
-	FileReader: fakeFileReaderWriter{},
-	LoadSaver:  persistrequests.JSONPersist{},
+type fakeFileRemover struct {
 }
 
-func TestNewPersistServer(t *testing.T) {
+// Remove implements the Remover interface that's been created so that os.Remove() can be mocked or faked
+func (f fakeFileRemover) Remove(name string) error {
 
-	got := NewPersistServer("")
-
-	want := PersistServer{
-		LoadSaver:  persistrequests.JSONPersist{},
-		FileWriter: persistrequests.FileWriter{},
-		FileReader: persistrequests.FileReader{},
+	if name == "NOT-exists.json" {
+		return os.ErrNotExist
 	}
 
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("Got %v, wanted %v", got, want)
+	return nil
+}
+
+// This is a flag to test if the RemoveAll will return an error or not
+var removeAllError = false
+
+// RemoveAll implements the Remover interface thats been created so that os.RemoveAll() can be mocked or faked
+func (f fakeFileRemover) RemoveAll(path string) error {
+
+	if removeAllError {
+		return errors.New("fake error")
 	}
+	return nil
+}
+
+var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","Response":{"something":"fake"}}`
+
+var directoryPath = ""
+
+var testThing = Server{
+	FileWriter:     fakeFileReaderWriter{},
+	FileReader:     fakeFileReaderWriter{},
+	FileRemover:    fakeFileRemover{},
+	HandleRequests: persistrequests.JSONPersist{RequestDirectory: directoryPath},
 }
 
 func TestRetreiveRequestHandler(t *testing.T) {
