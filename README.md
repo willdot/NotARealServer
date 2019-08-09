@@ -53,8 +53,35 @@ In "Response" you can put any valid JSON. This is what will be returned to you w
 }
 ```
 
+### Remove some or all requests
+
+You can send a request to remove one, many or all saved requests files.
+
+#### Remove one or many
+Make a POST request to http://localhost:8080/remove 
+
+The body of the request must look like this, where the requests is an array of each request you wish to delete:
+
+``` json
+{
+    "Requests": [
+        {
+            "RequestRoute": "CreateTest",
+            "RequestMethod": "POST"
+        },
+        {
+            "RequestRoute": "GetTest",
+            "RequestMethod": "GET"
+        },
+    ]
+}
+```
+#### Remove all
+Make a POST request to http://localhost:8080/removeall
+
+Be careful though, as this will remove all requests!!
+
 ## TODO
 
 * Implement some form of header request / response so that you can test if a header is correct
-* Clear out request files
 * Add better error handling when user provides incorrect JSON
