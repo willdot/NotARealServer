@@ -7,31 +7,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/willdot/NotARealServer/persistrequests"
 )
 
 var errNoRequestRouteFound = errors.New("no request route property found")
 var errRequestRouteIsNotString = errors.New("the request route provided is not a string")
 var errNoRequestMethodFound = errors.New("no request method property found")
 var errRequestMethodIsNotString = errors.New("the request method provided is not a string")
-
-// PersistServer allows the user to save or retrieve requests
-type PersistServer struct {
-	FileWriter persistrequests.Writer
-	FileReader persistrequests.Reader
-	LoadSaver  persistrequests.SaveLoadRequest
-}
-
-// NewPersistServer creates a new PersistServer and adds in dependencies
-func NewPersistServer(requestDirectory string) PersistServer {
-	return PersistServer{
-		FileWriter: persistrequests.FileWriter{},
-		FileReader: persistrequests.FileReader{},
-		LoadSaver: persistrequests.JSONPersist{
-			RequestDirectory: requestDirectory,
-		},
-	}
-}
 
 func verifyRequestRouteAndMethod(request map[string]interface{}) error {
 
@@ -66,7 +47,7 @@ func isTypeString(item interface{}) bool {
 }
 
 // SaveRequestHandler takes the body of the request and saves it as a json file
-func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
+func (s *Server) SaveRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		decoder := json.NewDecoder(r.Body)
@@ -87,7 +68,7 @@ func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		err = p.LoadSaver.Save(requestContent, p.FileWriter)
+		err = s.HandleRequests.Save(requestContent, s.FileWriter)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -100,7 +81,7 @@ func (p *PersistServer) SaveRequestHandler() http.HandlerFunc {
 }
 
 // RetreiveRequestHandler takes the first parameter of the url and tried to return a saved request with that name
-func (p *PersistServer) RetreiveRequestHandler() http.HandlerFunc {
+func (s *Server) RetreiveRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		params := mux.Vars(r)
@@ -108,7 +89,7 @@ func (p *PersistServer) RetreiveRequestHandler() http.HandlerFunc {
 		requestRoute := params["RequestRoute"]
 		requestMethod := r.Method
 
-		result, err := p.LoadSaver.Load(requestRoute, requestMethod, p.FileReader)
+		result, err := s.HandleRequests.Load(requestRoute, requestMethod, s.FileReader)
 
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", requestRoute), http.StatusBadRequest)

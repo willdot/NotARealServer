@@ -60,13 +60,44 @@ func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (interfa
 	return savedRequest.Response, nil
 }
 
-func createFilename(requestMethod, requestRoute string) string {
-	return fmt.Sprintf("%v-%v.json", strings.ToUpper(requestMethod), strings.ToLower(requestRoute))
+// Remove will remove all the requests that the user has requested to be removed. An error will be returned with any files that don't exist
+func (j JSONPersist) Remove(requestsToRemove []DeleteRequest, r Remove) error {
+
+	var errors []error
+	for _, req := range requestsToRemove {
+		filename := createFilename(req.RequestMethod, req.RequestRoute)
+
+		err := r.Remove(j.RequestDirectory + filename)
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+	if len(errors) > 0 {
+		return mergeErrors(errors)
+	}
+
+	return nil
 }
 
-// SavedRequest is an entire saved request that requires a RequestRoute and RequestMethod. The Response is what the user wants to be returned when they make their fake API call.
-type SavedRequest struct {
-	RequestRoute  string
-	RequestMethod string
-	Response      interface{}
+// RemoveAll will delete the contents of the requests directory
+func (j JSONPersist) RemoveAll(r RemoveAll) error {
+
+	return r.RemoveAll(j.RequestDirectory)
+}
+
+func mergeErrors(errs []error) error {
+
+	var errorMessage string
+	for _, e := range errs {
+		errorMessage += fmt.Sprintf("%v\n", e.Error())
+	}
+
+	errorMessage = strings.TrimRight(errorMessage, "\n")
+
+	return errors.New(errorMessage)
+}
+
+func createFilename(requestMethod, requestRoute string) string {
+	return fmt.Sprintf("%v-%v.json", strings.ToUpper(requestMethod), strings.ToLower(requestRoute))
 }

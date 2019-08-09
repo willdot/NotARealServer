@@ -6,8 +6,13 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 	"testing"
 )
+
+const directoryPath = "path/"
+
+var errFakeError = errors.New("Fake error")
 
 func TestSave(t *testing.T) {
 
@@ -115,6 +120,121 @@ func TestLoad(t *testing.T) {
 	}
 }
 
+func TestRemoveRequests(t *testing.T) {
+	testCases := []struct {
+		Name             string
+		RequestsToRemove []DeleteRequest
+		NumberOfErrors   int
+		ExpectedError    error
+	}{
+		{
+			Name:             "1 Request provided and it's removed successfully with no error",
+			RequestsToRemove: createDeleteRequests(1),
+			ExpectedError:    createError(0),
+		},
+		{
+			Name:             "2 Requests provided and both removed successfully with no error",
+			RequestsToRemove: createDeleteRequests(2),
+			ExpectedError:    createError(0),
+		},
+		{
+			Name:             "2 Requests provided one doesn't exist and error returned stating the 1 file that doesn't exist",
+			RequestsToRemove: createDeleteRequests(2),
+			NumberOfErrors:   1,
+			ExpectedError:    createError(1),
+		},
+		{
+			Name:             "2 Requests provided neither exist and error returned stating the 2 files don't exist",
+			RequestsToRemove: createDeleteRequests(2),
+			NumberOfErrors:   2,
+			ExpectedError:    createError(2),
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+
+			jp := JSONPersist{directoryPath}
+
+			fr := fakeMultipleRemover{errorRequests: test.RequestsToRemove[:test.NumberOfErrors]}
+
+			err := jp.Remove(test.RequestsToRemove, &fr)
+
+			assertErrors(err, test.ExpectedError, t)
+		})
+	}
+}
+
+func TestRemoveAll(t *testing.T) {
+
+	testCases := []struct {
+		Name          string
+		Path          string
+		ExpectedError error
+	}{
+		{
+			Name:          "Path exists, deletes, no error",
+			Path:          "this/path/exists",
+			ExpectedError: nil,
+		},
+		{
+			Name:          "Path does not exist, doesn't delete, no error",
+			Path:          "does/not/exist",
+			ExpectedError: nil,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+			jp := JSONPersist{test.Path}
+			fr := fakeRemover{err: test.ExpectedError}
+
+			err := jp.RemoveAll(fr)
+
+			if err != test.ExpectedError {
+				t.Errorf("Didn't want an error, but got %v", err)
+			}
+		})
+	}
+}
+
+func TestMergeErrors(t *testing.T) {
+
+	testCases := []struct {
+		Name           string
+		NumberOfErrors int
+		ExpectedError  error
+	}{
+		{
+			Name:           "One error, error returned",
+			NumberOfErrors: 1,
+			ExpectedError:  errors.New("error 1"),
+		},
+		{
+			Name:           "Two errors, error returned",
+			NumberOfErrors: 2,
+			ExpectedError:  errors.New("error 1\nerror 2"),
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+
+			errors := make([]error, test.NumberOfErrors)
+
+			for i := 0; i < test.NumberOfErrors; i++ {
+
+				err := fmt.Errorf("error %v", i+1)
+				errors[i] = err
+			}
+
+			got := mergeErrors(errors)
+
+			assertErrors(got, test.ExpectedError, t)
+		})
+	}
+}
+
 func assertErrors(got, want error, t *testing.T) {
 	// If both are nil, then all is fine
 	if got == nil && want == nil {
@@ -139,7 +259,80 @@ func assertErrors(got, want error, t *testing.T) {
 	return
 }
 
-var errFakeError = errors.New("Fake error")
+// This is a fake remover that returns an error if required
+type fakeRemover struct {
+	err error
+}
+
+// Remove mocks the os.Remove() but will just return and error if there is one
+func (fr fakeRemover) Remove(name string) error {
+	return fr.err
+}
+
+// Remove mocks the os.RemoveAll() but will just return and error if there is one
+func (fr fakeRemover) RemoveAll(path string) error {
+	return fr.err
+}
+
+// This is a fake Remover that has logic to send back an error message. The slice of SavedRequests are the files that don't exist.
+type fakeMultipleRemover struct {
+	errorRequests []DeleteRequest
+}
+
+// Remove mocks the os.Remove() but in this case is will see if the incoming filename is in the slice of errorRequests on the struct, and if if is, then it'll return the error
+func (fmr *fakeMultipleRemover) Remove(name string) error {
+
+	for _, v := range fmr.errorRequests {
+		filename := directoryPath + createFilename(v.RequestMethod, v.RequestRoute)
+
+		if name == filename {
+			return os.ErrNotExist
+		}
+	}
+	return nil
+}
+
+// This creates an error message that contains an error message of a given number of file not exist errors
+func createError(numberOfErrors int) error {
+
+	if numberOfErrors == 0 {
+		return nil
+	}
+	errorMessage := ""
+
+	for i := 0; i < numberOfErrors; i++ {
+		errorMessage += fmt.Sprintf("%v\n", os.ErrNotExist.Error())
+
+	}
+	errorMessage = strings.TrimRight(errorMessage, "\n")
+	return errors.New(errorMessage)
+}
+
+func createRequests(numberOfRequests int) []SavedRequest {
+	result := make([]SavedRequest, numberOfRequests)
+
+	for i := 0; i < numberOfRequests; i++ {
+		result[i] = SavedRequest{
+			RequestRoute:  fmt.Sprintf("HERE %v", i+1),
+			RequestMethod: "POST",
+		}
+	}
+
+	return result
+}
+
+func createDeleteRequests(numberOfRequests int) []DeleteRequest {
+	result := make([]DeleteRequest, numberOfRequests)
+
+	for i := 0; i < numberOfRequests; i++ {
+		result[i] = DeleteRequest{
+			RequestRoute:  fmt.Sprintf("HERE %v", i+1),
+			RequestMethod: "POST",
+		}
+	}
+
+	return result
+}
 
 type fakeFileReaderWriter struct {
 }
@@ -230,4 +423,3 @@ func createUnmarshalError() error {
 
 	return err.(*json.SyntaxError)
 }
- 
