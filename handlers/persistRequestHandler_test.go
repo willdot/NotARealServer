@@ -64,8 +64,9 @@ var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","Response":{"somet
 var directoryPath = ""
 
 var testThing = Server{
-	FileWriter:     fakeFileReaderWriter{},
-	FileReader:     fakeFileReaderWriter{},
+	//FileWriter:     fakeFileReaderWriter{},
+	//FileReader:     fakeFileReaderWriter{},
+	FileReadWriter: fakeFileReaderWriter{},
 	FileRemover:    fakeFileRemover{},
 	HandleRequests: persistrequests.JSONPersist{RequestDirectory: directoryPath},
 }

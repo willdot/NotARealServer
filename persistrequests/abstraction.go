@@ -10,27 +10,29 @@ type Writer interface {
 	WriteFile(filename string, data []byte, perm os.FileMode) error
 }
 
-// FileWriter implements an abstraction of ioutil.WriterFile
-type FileWriter struct {
-}
-
-// WriteFile implements the Writer interface that's been created so that ioutil.WriteFile can be mocked or faked
-func (w FileWriter) WriteFile(filename string, data []byte, perm os.FileMode) error {
-	return ioutil.WriteFile(filename, data, perm)
-}
-
 // Reader is an interface to use over the ioutil.ReadFile() function so that it can be mocked or faked
 type Reader interface {
 	ReadFile(filename string) ([]byte, error)
 }
 
-//FileReader implements an abstraction of the ioutil.ReadFile
-type FileReader struct {
+// ReadWriter is an interface to allow the reading and writing of files
+type ReadWriter interface {
+	Reader
+	Writer
+}
+
+// FileReadWriter implements the ReadWriter interface to allow the reading and writing of files using ioutil
+type FileReadWriter struct {
 }
 
 // ReadFile implements the Reader interface that has been created so that ioutil.ReadFile can be mocked or faked
-func (f FileReader) ReadFile(filename string) ([]byte, error) {
+func (rw FileReadWriter) ReadFile(filename string) ([]byte, error) {
 	return ioutil.ReadFile(filename)
+}
+
+// WriteFile implements the Writer interface that's been created so that ioutil.WriteFile can be mocked or faked
+func (rw FileReadWriter) WriteFile(filename string, data []byte, perm os.FileMode) error {
+	return ioutil.WriteFile(filename, data, perm)
 }
 
 // Remove is an interface to use over os.Remove() so that it can be mocked or faked
@@ -49,7 +51,7 @@ type Remover interface {
 	RemoveAll
 }
 
-// FileRemover implements an abstraction over os.Remove and os.RemoveAll
+// FileRemover implements the remover interface to allow using os.Remove and os.RemoveAll
 type FileRemover struct {
 }
 

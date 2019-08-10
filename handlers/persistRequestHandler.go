@@ -68,7 +68,7 @@ func (s *Server) SaveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		err = s.HandleRequests.Save(requestContent, s.FileWriter)
+		err = s.HandleRequests.Save(requestContent, s.FileReadWriter)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -89,7 +89,7 @@ func (s *Server) RetreiveRequestHandler() http.HandlerFunc {
 		requestRoute := params["RequestRoute"]
 		requestMethod := r.Method
 
-		result, err := s.HandleRequests.Load(requestRoute, requestMethod, s.FileReader)
+		result, err := s.HandleRequests.Load(requestRoute, requestMethod, s.FileReadWriter)
 
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Problem retreiving request '%v'", requestRoute), http.StatusBadRequest)
