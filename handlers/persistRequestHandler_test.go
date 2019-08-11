@@ -34,6 +34,10 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 
 }
 
+func (f fakeFileReaderWriter) CreateDirIfNotFound(path string) error {
+	return nil
+}
+
 type fakeFileRemover struct {
 }
 
@@ -64,8 +68,6 @@ var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","Response":{"somet
 var directoryPath = ""
 
 var testThing = Server{
-	//FileWriter:     fakeFileReaderWriter{},
-	//FileReader:     fakeFileReaderWriter{},
 	FileReadWriter: fakeFileReaderWriter{},
 	FileRemover:    fakeFileRemover{},
 	HandleRequests: persistrequests.JSONPersist{RequestDirectory: directoryPath},

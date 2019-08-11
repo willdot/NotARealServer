@@ -7,12 +7,18 @@ import (
 
 // Writer is an interface to use over the ioutil.WriteFile() function so that it can be mocked or faked
 type Writer interface {
+	DirectoryChecker
 	WriteFile(filename string, data []byte, perm os.FileMode) error
 }
 
 // Reader is an interface to use over the ioutil.ReadFile() function so that it can be mocked or faked
 type Reader interface {
 	ReadFile(filename string) ([]byte, error)
+}
+
+// DirectoryChecker allows the checking a directory exists before saving a file to it
+type DirectoryChecker interface {
+	CreateDirIfNotFound(path string) error
 }
 
 // ReadWriter is an interface to allow the reading and writing of files
@@ -33,6 +39,20 @@ func (rw FileReadWriter) ReadFile(filename string) ([]byte, error) {
 // WriteFile implements the Writer interface that's been created so that ioutil.WriteFile can be mocked or faked
 func (rw FileReadWriter) WriteFile(filename string, data []byte, perm os.FileMode) error {
 	return ioutil.WriteFile(filename, data, perm)
+}
+
+// CreateDirIfNotFound implements the DirectoryChecker interface and checks if a directory exists and creates it if doesn't
+func (rw FileReadWriter) CreateDirIfNotFound(path string) error {
+	_, err := os.Stat(path)
+
+	if os.IsNotExist(err) {
+		errDir := os.MkdirAll(path, 0755)
+		if errDir != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Remove is an interface to use over os.Remove() so that it can be mocked or faked
