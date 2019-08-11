@@ -369,6 +369,10 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 	return result, nil
 }
 
+func (f fakeFileReaderWriter) CreateDirIfNotFound(path string) error {
+	return nil
+}
+
 type Something struct {
 	Language string
 	Count    float64

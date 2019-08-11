@@ -34,6 +34,9 @@ func (j JSONPersist) Save(requestData map[string]interface{}, w Writer) error {
 	}
 
 	filename := createFilename(requestMethod.(string), requestRoute.(string))
+
+	err = w.CreateDirIfNotFound(j.RequestDirectory)
+
 	err = w.WriteFile(j.RequestDirectory+filename, file, 0644)
 
 	return err

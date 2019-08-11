@@ -7,6 +7,7 @@ import (
 
 // Writer is an interface to use over the ioutil.WriteFile() function so that it can be mocked or faked
 type Writer interface {
+	DirectoryChecker
 	WriteFile(filename string, data []byte, perm os.FileMode) error
 }
 
@@ -24,7 +25,6 @@ type DirectoryChecker interface {
 type ReadWriter interface {
 	Reader
 	Writer
-	DirectoryChecker
 }
 
 // FileReadWriter implements the ReadWriter interface to allow the reading and writing of files using ioutil
