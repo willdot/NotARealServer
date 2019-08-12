@@ -113,8 +113,3 @@ The body of the request must look like this, where the requests is an array of e
 Make a POST request to http://localhost:8080/removeall
 
 Be careful though, as this will remove all requests!!
-
-## TODO
-
-* Implement some form of header request / response so that you can test if a header is correct
-* Add better error handling when user provides incorrect JSON
