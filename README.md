@@ -34,7 +34,25 @@ The body of the request must look like this:
         "Something": {
             "Text" : "Some text"
         }
-    }
+    },
+    "Headers": [
+        {
+            "Header": {
+                "Content-Type": [
+                    "application/json"
+                ]
+            },
+            "BadResponse": "Content type not valid"
+        },
+        {
+            "Header": {
+                "ApiKey": [
+                    "1234"
+                ]
+            },
+            "BadResponse": "Api key not valid"
+        }
+    ]
 }
 ```
 
@@ -51,6 +69,33 @@ In "Response" you can put any valid JSON. This is what will be returned to you w
         "Text" : "Some text"
     }
 }
+```
+
+### Using headers
+If you want to add in some bad header error responses, you can add in a headers section to the request body. 
+
+To use headers you need to supply an array of Header requests, which contain a Header (the key of the header) and then an array of values. You then need to supply a bad response, which is what the user will see if the headers they supply, don't match the headers you want. For example:
+
+``` json
+"Headers": [
+        {
+            "Header": {
+                "Content-Type": [
+                    "application/json"
+                ]
+            },
+            "BadResponse": "Content type not valid"
+        },
+        {
+            "Header": {
+                "UserKeys": [
+                    "1234",
+                    "5678"
+                ]
+            },
+            "BadResponse": "User keys not valid"
+        }
+    ]
 ```
 
 ### Remove some or all requests
