@@ -34,25 +34,7 @@ The body of the request must look like this:
         "Something": {
             "Text" : "Some text"
         }
-    },
-    "Headers": [
-        {
-            "Header": {
-                "Content-Type": [
-                    "application/json"
-                ]
-            },
-            "BadResponse": "Content type not valid"
-        },
-        {
-            "Header": {
-                "ApiKey": [
-                    "1234"
-                ]
-            },
-            "BadResponse": "Api key not valid"
-        }
-    ]
+    }
 }
 ```
 
@@ -84,7 +66,10 @@ To use headers you need to supply an array of Header requests, which contain a H
                     "application/json"
                 ]
             },
-            "BadResponse": "Content type not valid"
+            "Response": {
+                "Message": "Content type not allowed",
+                "ErrorCode": 400
+            }
         },
         {
             "Header": {
@@ -93,7 +78,10 @@ To use headers you need to supply an array of Header requests, which contain a H
                     "5678"
                 ]
             },
-            "BadResponse": "User keys not valid"
+            "Response": {
+                "Message": "Api key not valid",
+                "ErrorCode": 401
+            }
         }
     ]
 ```

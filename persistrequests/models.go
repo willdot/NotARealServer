@@ -17,5 +17,11 @@ type DeleteRequest struct {
 // HeaderRequest is a request for the user to check the headers of a request
 type HeaderRequest struct {
 	Header      map[string][]string
-	BadResponse string
+	BadResponse BadResponse
+}
+
+// BadResponse contains an error message and an HTTP status code
+type BadResponse struct {
+	Message   string
+	ErrorCode int
 }

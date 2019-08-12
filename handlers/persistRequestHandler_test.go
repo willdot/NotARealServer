@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -76,7 +77,7 @@ func (f fakeFileRemover) RemoveAll(path string) error {
 	return nil
 }
 
-var fakeJSON = `{"RequestMethod":"POST","Headers":[{"Header": {"Content-Type": ["%v"]},"BadResponse": "Content type not valid"}],"RequestRoute":"Test","Response":{"something":"fake"}}`
+var fakeJSON = `{"RequestMethod":"POST","Headers":[{"Header": {"Content-Type": ["%v"]},"BadResponse":{"Message": "Content type not valid","ErrorCode": 400}}],"RequestRoute":"Test","Response":{"something":"fake"}}`
 
 var directoryPath = ""
 
@@ -250,45 +251,43 @@ func TestIsTypeString(t *testing.T) {
 
 func TestCheckHeaders(t *testing.T) {
 	testCases := []struct {
-		Name                 string
-		SavedHeaders         []persistrequests.HeaderRequest
-		RequestHeaders       map[string][]string
-		ExpectedResult       bool
-		ExpectedErrorMessage string
+		Name           string
+		SavedHeaders   []persistrequests.HeaderRequest
+		RequestHeaders map[string][]string
+		ExpectedResult *persistrequests.BadResponse
 	}{
 		{
-			Name:                 "1 header saved, 1 header supplied. Matching. Success",
-			SavedHeaders:         createSavedHeaders(1),
-			RequestHeaders:       createRequestHeaders(1, true),
-			ExpectedResult:       true,
-			ExpectedErrorMessage: "",
+			Name:           "1 header saved, 1 header supplied. Matching. Success",
+			SavedHeaders:   createSavedHeaders(1),
+			RequestHeaders: createRequestHeaders(1, true),
+			ExpectedResult: nil,
 		},
 		{
-			Name:                 "2 headers saved, 1 header supplied. Not enough supplied. Failure",
-			SavedHeaders:         createSavedHeaders(2),
-			RequestHeaders:       createRequestHeaders(1, true),
-			ExpectedResult:       false,
-			ExpectedErrorMessage: "Error",
+			Name:           "2 headers saved, 1 header supplied. Not enough supplied. Failure",
+			SavedHeaders:   createSavedHeaders(2),
+			RequestHeaders: createRequestHeaders(1, true),
+			ExpectedResult: &persistrequests.BadResponse{
+				Message:   "Error",
+				ErrorCode: 400,
+			},
 		},
 		{
-			Name:                 "1 headers saved, 1 header supplied. Header values don't match. Failure",
-			SavedHeaders:         createSavedHeaders(1),
-			RequestHeaders:       createRequestHeaders(1, false),
-			ExpectedResult:       false,
-			ExpectedErrorMessage: "Error",
+			Name:           "1 headers saved, 1 header supplied. Header values don't match. Failure",
+			SavedHeaders:   createSavedHeaders(1),
+			RequestHeaders: createRequestHeaders(1, false),
+			ExpectedResult: &persistrequests.BadResponse{
+				Message:   "Error",
+				ErrorCode: 400,
+			},
 		},
 	}
 
 	for _, test := range testCases {
 		t.Run(test.Name, func(t *testing.T) {
-			got, errorMessage := checkHeaders(test.SavedHeaders, test.RequestHeaders)
+			got := checkHeaders(test.SavedHeaders, test.RequestHeaders)
 
-			if got != test.ExpectedResult {
+			if !reflect.DeepEqual(got, test.ExpectedResult) {
 				t.Errorf("got %v, want %v", got, test.ExpectedResult)
-			}
-
-			if errorMessage != test.ExpectedErrorMessage {
-				t.Errorf("got %v, want %v", errorMessage, test.ExpectedErrorMessage)
 			}
 		})
 	}
@@ -301,7 +300,10 @@ func createSavedHeaders(headerCount int) []persistrequests.HeaderRequest {
 
 	for i := 0; i < headerCount; i++ {
 		result[i] = persistrequests.HeaderRequest{
-			BadResponse: "Error",
+			BadResponse: persistrequests.BadResponse{
+				Message:   "Error",
+				ErrorCode: 400,
+			},
 			Header: map[string][]string{
 				fmt.Sprintf("header %v", i): []string{"value"}},
 		}

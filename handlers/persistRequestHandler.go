@@ -98,10 +98,10 @@ func (s *Server) RetreiveRequestHandler() http.HandlerFunc {
 			return
 		}
 
-		headerCorrect, errorMessage := checkHeaders(result.Headers, r.Header)
+		badResponse := checkHeaders(result.Headers, r.Header)
 
-		if !headerCorrect {
-			http.Error(w, errorMessage, http.StatusBadRequest)
+		if badResponse != nil {
+			http.Error(w, badResponse.Message, badResponse.ErrorCode)
 			return
 		}
 
@@ -110,8 +110,7 @@ func (s *Server) RetreiveRequestHandler() http.HandlerFunc {
 	}
 }
 
-func checkHeaders(savedHeaders []persistrequests.HeaderRequest, requestHeaders map[string][]string) (bool, string) {
-
+func checkHeaders(savedHeaders []persistrequests.HeaderRequest, requestHeaders map[string][]string) *persistrequests.BadResponse {
 	// Loop through all the saved headers so that we can see if the request contains that header
 	for _, savedHeader := range savedHeaders {
 
@@ -123,15 +122,15 @@ func checkHeaders(savedHeaders []persistrequests.HeaderRequest, requestHeaders m
 			requestHeader := requestHeaders[k]
 			// If the request doesn't contain a header with the key, return the bad response
 			if requestHeader == nil {
-				return false, savedHeader.BadResponse
+				return &savedHeader.BadResponse
 			}
 
 			// Check the values of the saved header and the request header to make sure the request header values are valid
 			if !reflect.DeepEqual(v, requestHeader) {
-				return false, savedHeader.BadResponse
+				return &savedHeader.BadResponse
 			}
 		}
 	}
 
-	return true, ""
+	return nil
 }
