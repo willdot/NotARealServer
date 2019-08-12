@@ -53,6 +53,39 @@ In "Response" you can put any valid JSON. This is what will be returned to you w
 }
 ```
 
+### Using headers
+If you want to add in some bad header error responses, you can add in a headers section to the request body. 
+
+To use headers you need to supply an array of Header requests, which contain a Header (the key of the header) and then an array of values. You then need to supply a bad response, which is what the user will see if the headers they supply, don't match the headers you want. For example:
+
+``` json
+"Headers": [
+        {
+            "Header": {
+                "Content-Type": [
+                    "application/json"
+                ]
+            },
+            "Response": {
+                "Message": "Content type not allowed",
+                "ErrorCode": 400
+            }
+        },
+        {
+            "Header": {
+                "UserKeys": [
+                    "1234",
+                    "5678"
+                ]
+            },
+            "Response": {
+                "Message": "Api key not valid",
+                "ErrorCode": 401
+            }
+        }
+    ]
+```
+
 ### Remove some or all requests
 
 You can send a request to remove one, many or all saved requests files.

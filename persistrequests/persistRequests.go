@@ -7,7 +7,7 @@ type SaveRequest interface {
 
 // LoadRequest is an interface to load a request
 type LoadRequest interface {
-	Load(requestRoute, requestMethod string, r Reader) (interface{}, error)
+	Load(requestRoute, requestMethod string, r Reader) (SavedRequest, error)
 }
 
 // RemoveRequest is an interface to Remove a single request

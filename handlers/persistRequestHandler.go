@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/gorilla/mux"
+	"github.com/willdot/NotARealServer/persistrequests"
 )
 
 var errNoRequestRouteFound = errors.New("no request route property found")
@@ -96,7 +98,39 @@ func (s *Server) RetreiveRequestHandler() http.HandlerFunc {
 			return
 		}
 
+		badResponse := checkHeaders(result.Headers, r.Header)
+
+		if badResponse != nil {
+			http.Error(w, badResponse.Message, badResponse.ErrorCode)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode(result.Response)
 	}
+}
+
+func checkHeaders(savedHeaders []persistrequests.HeaderRequest, requestHeaders map[string][]string) *persistrequests.BadResponse {
+	// Loop through all the saved headers so that we can see if the request contains that header
+	for _, savedHeader := range savedHeaders {
+
+		header := savedHeader.Header
+
+		// As a header is a map, we need to loop through it to get the header key
+		for k, v := range header {
+
+			requestHeader := requestHeaders[k]
+			// If the request doesn't contain a header with the key, return the bad response
+			if requestHeader == nil {
+				return &savedHeader.BadResponse
+			}
+
+			// Check the values of the saved header and the request header to make sure the request header values are valid
+			if !reflect.DeepEqual(v, requestHeader) {
+				return &savedHeader.BadResponse
+			}
+		}
+	}
+
+	return nil
 }

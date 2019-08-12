@@ -109,7 +109,7 @@ func TestLoad(t *testing.T) {
 			jsonByte, _ := json.Marshal(test.OutputData)
 			json.Unmarshal(jsonByte, &want)
 
-			gotString := fmt.Sprintf("%v", got)
+			gotString := fmt.Sprintf("%v", got.Response)
 			wantString := fmt.Sprintf("%v", want)
 
 			if gotString != wantString {
