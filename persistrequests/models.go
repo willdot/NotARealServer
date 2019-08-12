@@ -12,3 +12,8 @@ type DeleteRequest struct {
 	RequestRoute  string
 	RequestMethod string
 }
+
+// HeaderRequest is a request for the user to check the headers of a request
+type HeaderRequest struct {
+	Header map[string][]string
+}
