@@ -66,7 +66,7 @@ To use headers you need to supply an array of Header requests, which contain a H
                     "application/json"
                 ]
             },
-            "Response": {
+            "BadResponse": {
                 "Message": "Content type not allowed",
                 "ErrorCode": 400
             }
@@ -78,7 +78,7 @@ To use headers you need to supply an array of Header requests, which contain a H
                     "5678"
                 ]
             },
-            "Response": {
+            "BadResponse": {
                 "Message": "Api key not valid",
                 "ErrorCode": 401
             }
