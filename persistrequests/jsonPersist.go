@@ -43,24 +43,23 @@ func (j JSONPersist) Save(requestData map[string]interface{}, w Writer) error {
 }
 
 // Load will load a json from a file
-func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (interface{}, error) {
+func (j JSONPersist) Load(requestRoute, requestMethod string, r Reader) (SavedRequest, error) {
 
+	var savedRequest SavedRequest
 	filename := createFilename(requestMethod, requestRoute)
 	byteValue, err := r.ReadFile(j.RequestDirectory + filename)
 
 	if err != nil {
-		return nil, err
+		return savedRequest, err
 	}
-
-	var savedRequest SavedRequest
 
 	err = json.Unmarshal(byteValue, &savedRequest)
 
 	if err != nil {
-		return nil, err
+		return savedRequest, err
 	}
 
-	return savedRequest.Response, nil
+	return savedRequest, nil
 }
 
 // Remove will remove all the requests that the user has requested to be removed. An error will be returned with any files that don't exist

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,13 +25,25 @@ func (f fakeFileReaderWriter) WriteFile(filename string, data []byte, perm os.Fi
 
 func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 
+	var json string
+
+	// If the test is to do with bad header, take the fake json and add in "nothing as the content-type. Otherwise, put in "application/json" which is valid.
+	if filename == "POST-badheader.json" {
+		json = fmt.Sprintf(fakeJSON, "nothing")
+	} else {
+		json = fmt.Sprintf(fakeJSON, "application/json")
+	}
+
 	if filename == "POST-badjson.json" {
 
-		fakeJSON = strings.TrimRight(fakeJSON, `"}}`)
+		json = strings.TrimRight(json, `"}}`)
 
-		return []byte(fakeJSON), nil
+		return []byte(json), nil
 	}
-	return []byte(fakeJSON), nil
+
+	fmt.Println(json)
+
+	return []byte(json), nil
 
 }
 
@@ -63,7 +76,7 @@ func (f fakeFileRemover) RemoveAll(path string) error {
 	return nil
 }
 
-var fakeJSON = `{"RequestMethod":"POST","RequestRoute":"Test","Response":{"something":"fake"}}`
+var fakeJSON = `{"RequestMethod":"POST","Headers":[{"Header": {"Content-Type": ["%v"]},"BadResponse": "Content type not valid"}],"RequestRoute":"Test","Response":{"something":"fake"}}`
 
 var directoryPath = ""
 
@@ -92,6 +105,12 @@ func TestRetreiveRequestHandler(t *testing.T) {
 			Route:              "/badjson",
 			ExpectedStatusCode: http.StatusBadRequest,
 			ExpectedBody:       "Problem retreiving request 'badjson'",
+		},
+		{
+			Name:               "Param ok. Headers not ok. Returns 400 bad request",
+			Route:              "/badheader",
+			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedBody:       "Content type not valid",
 		},
 	}
 
@@ -227,4 +246,83 @@ func TestIsTypeString(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCheckHeaders(t *testing.T) {
+	testCases := []struct {
+		Name                 string
+		SavedHeaders         []persistrequests.HeaderRequest
+		RequestHeaders       map[string][]string
+		ExpectedResult       bool
+		ExpectedErrorMessage string
+	}{
+		{
+			Name:                 "1 header saved, 1 header supplied. Matching. Success",
+			SavedHeaders:         createSavedHeaders(1),
+			RequestHeaders:       createRequestHeaders(1, true),
+			ExpectedResult:       true,
+			ExpectedErrorMessage: "",
+		},
+		{
+			Name:                 "2 headers saved, 1 header supplied. Not enough supplied. Failure",
+			SavedHeaders:         createSavedHeaders(2),
+			RequestHeaders:       createRequestHeaders(1, true),
+			ExpectedResult:       false,
+			ExpectedErrorMessage: "Error",
+		},
+		{
+			Name:                 "1 headers saved, 1 header supplied. Header values don't match. Failure",
+			SavedHeaders:         createSavedHeaders(1),
+			RequestHeaders:       createRequestHeaders(1, false),
+			ExpectedResult:       false,
+			ExpectedErrorMessage: "Error",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Name, func(t *testing.T) {
+			got, errorMessage := checkHeaders(test.SavedHeaders, test.RequestHeaders)
+
+			if got != test.ExpectedResult {
+				t.Errorf("got %v, want %v", got, test.ExpectedResult)
+			}
+
+			if errorMessage != test.ExpectedErrorMessage {
+				t.Errorf("got %v, want %v", errorMessage, test.ExpectedErrorMessage)
+			}
+		})
+	}
+
+}
+
+func createSavedHeaders(headerCount int) []persistrequests.HeaderRequest {
+
+	result := make([]persistrequests.HeaderRequest, headerCount)
+
+	for i := 0; i < headerCount; i++ {
+		result[i] = persistrequests.HeaderRequest{
+			BadResponse: "Error",
+			Header: map[string][]string{
+				fmt.Sprintf("header %v", i): []string{"value"}},
+		}
+	}
+
+	return result
+}
+
+func createRequestHeaders(headerCount int, matchSavedHeader bool) map[string][]string {
+
+	headerValue := "value"
+
+	if !matchSavedHeader {
+		headerValue = "something"
+	}
+
+	result := make(map[string][]string, headerCount)
+
+	for i := 0; i < headerCount; i++ {
+		result[fmt.Sprintf("header %v", i)] = []string{headerValue}
+	}
+
+	return result
 }
