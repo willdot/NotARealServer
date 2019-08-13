@@ -10,8 +10,8 @@ type Server struct {
 }
 
 // NewServer creates a new Server and adds in dependencies
-func NewServer(requestDirectory string) Server {
-	return Server{
+func NewServer(requestDirectory string) *Server {
+	return &Server{
 		FileReadWriter: persistrequests.FileReadWriter{},
 		FileRemover:    persistrequests.FileRemover{},
 		HandleRequests: persistrequests.JSONPersist{

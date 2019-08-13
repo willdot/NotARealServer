@@ -11,7 +11,7 @@ func TestNewPersistServer(t *testing.T) {
 
 	got := NewServer("")
 
-	want := Server{
+	want := &Server{
 		HandleRequests: persistrequests.JSONPersist{},
 		FileReadWriter: persistrequests.FileReadWriter{},
 		FileRemover:    persistrequests.FileRemover{},

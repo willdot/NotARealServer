@@ -42,8 +42,6 @@ func (f fakeFileReaderWriter) ReadFile(filename string) ([]byte, error) {
 		return []byte(json), nil
 	}
 
-	fmt.Println(json)
-
 	return []byte(json), nil
 
 }
