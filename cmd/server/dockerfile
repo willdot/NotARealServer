@@ -1,7 +1,6 @@
 FROM golang:1.12
 
-ADD ./cmd/server /go/src/app
-WORKDIR /go/src/app
+WORKDIR /app
 
 ENV GO111MODULE=on
 
@@ -10,7 +9,6 @@ COPY go.sum .
 
 RUN go mod download
 
-ENV PORT=8080
-ENV REQUESTDIRECTORY=requests
+COPY . .
 
-CMD ["go", "run", "main.go"]
+CMD ["go","run","./cmd/server/main.go"]
