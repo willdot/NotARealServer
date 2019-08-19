@@ -1,8 +1,19 @@
-version: '2'
+version: '3.1'
 services:
+
+  fakeserver:
+    build: 
+      context: ./
+      dockerfile: ./cmd/server/dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      REQUESTDIRECTORY: requests
+
   app:
     container_name: fakeServer
-    build: .
+    build: ./cmd/server
     command: go run main.go
     volumes:
       - .:/go/src/app

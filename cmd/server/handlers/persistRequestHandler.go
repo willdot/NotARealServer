@@ -8,7 +8,7 @@ import (
 	"reflect"
 
 	"github.com/gorilla/mux"
-	"github.com/willdot/NotARealServer/persistrequests"
+	"github.com/willdot/NotARealServer/pkg/persistrequests"
 )
 
 var errNoRequestRouteFound = errors.New("no request route property found")

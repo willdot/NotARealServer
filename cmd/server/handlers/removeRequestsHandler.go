@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/willdot/NotARealServer/persistrequests"
+	"github.com/willdot/NotARealServer/pkg/persistrequests"
 )
 
 // RemoveRequestHandler removes the requests provided by the user in the body

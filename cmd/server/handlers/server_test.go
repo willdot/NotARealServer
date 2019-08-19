@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/willdot/NotARealServer/persistrequests"
+	"github.com/willdot/NotARealServer/pkg/persistrequests"
 )
 
 func TestNewPersistServer(t *testing.T) {
