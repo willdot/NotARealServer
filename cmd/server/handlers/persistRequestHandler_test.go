@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/willdot/NotARealServer/persistrequests"
+	"github.com/willdot/NotARealServer/pkg/persistrequests"
 )
 
 type FakeFileWriter struct {

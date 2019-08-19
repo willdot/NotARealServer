@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/willdot/NotARealServer/persistrequests"
+import "github.com/willdot/NotARealServer/pkg/persistrequests"
 
 // Server allows the user to save, retrieve or remove requests
 type Server struct {

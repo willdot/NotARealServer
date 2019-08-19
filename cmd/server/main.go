@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/willdot/NotARealServer/handlers"
+	"github.com/willdot/NotARealServer/cmd/server/handlers"
 
 	"github.com/gorilla/mux"
 )
